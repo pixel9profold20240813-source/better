@@ -28,7 +28,7 @@
                         'liquid-morph': 'morph 8s ease-in-out infinite',
                         'blob': 'blob 15s infinite alternate',
                         'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'scale-in': 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                        'scale-in': 'scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
                     },
                     keyframes: {
                         morph: {
@@ -41,7 +41,10 @@
                             '100%': { transform: 'translate(40px, -40px) scale(1.1)' }
                         },
                         fadeIn: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-                        scaleIn: { '0%': { opacity: 0, transform: 'scale(0.95)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
+                        scaleIn: { 
+                            '0%': { opacity: 0, transform: 'scale(0.85) translateY(10px)' }, 
+                            '100%': { opacity: 1, transform: 'scale(1) translateY(0)' } 
+                        }
                     }
                 }
             }
@@ -94,7 +97,7 @@
 
         /* 按鈕縮放回饋 */
         .btn-press { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease; }
-        .btn-press:active { transform: scale(0.96); }
+        .btn-press:active:not(:disabled) { transform: scale(0.96); }
 
         /* Toast 動畫 */
         @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -110,7 +113,7 @@
         <div class="absolute bottom-[-10%] left-[20%] w-[60%] h-[50%] bg-gradient-to-t from-yellow-200/50 to-pink-200/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 18s; animation-delay: -2s;"></div>
     </div>
 
-    <!-- 浮島式 Navbar (右上角) -->
+    <!-- 浮島式 Navbar -->
     <header id="navbar" class="hidden fixed top-4 right-4 sm:top-6 sm:right-6 z-40 liquid-glass px-4 py-2 sm:px-5 sm:py-2.5 rounded-full flex items-center gap-4 animate-fade-in transition-all">
         <div class="flex items-center gap-2">
             <i class="fas fa-droplet text-liquid-blue text-lg"></i>
@@ -230,7 +233,8 @@
                             <tr class="border-b border-gray-300/30 text-liquid-gray text-xs uppercase tracking-wider">
                                 <th class="py-3 px-2 font-medium">玩家</th>
                                 <th class="py-3 px-2 font-medium">金幣</th>
-                                <th class="py-3 px-2 font-medium">狀態</th>
+                                <th class="py-3 px-2 font-medium">大廳狀態</th>
+                                <th class="py-3 px-2 font-medium">個人問答</th>
                                 <th class="py-3 px-2 font-medium text-right">操作</th>
                             </tr>
                         </thead>
@@ -247,8 +251,12 @@
             <!-- 頂部資訊卡 -->
             <div class="liquid-glass-heavy rounded-3xl p-6 flex items-center justify-between shadow-lg shadow-gray-200/50">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-white/60 border border-white rounded-full flex items-center justify-center text-xl text-gray-700 shadow-sm">
+                    <div class="w-12 h-12 bg-white/60 border border-white rounded-full flex items-center justify-center text-xl text-gray-700 shadow-sm relative">
                         <i class="fas fa-ghost"></i>
+                        <!-- 排名 Badge -->
+                        <div id="client-rank-badge" class="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm border border-white whitespace-nowrap">
+                            #1
+                        </div>
                     </div>
                     <div>
                         <p class="text-[10px] text-liquid-gray font-bold uppercase tracking-widest mb-0.5">Player</p>
@@ -272,9 +280,11 @@
     </main>
 
     <!-- Global Toast Container -->
-    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4"></div>
+    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[70] flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4"></div>
 
-    <!-- Liquid Confirm Modal -->
+    <!-- Modals (with scale-in animations) -->
+    
+    <!-- Confirm Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
         <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[300px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
@@ -287,7 +297,7 @@
         </div>
     </div>
 
-    <!-- Liquid Input Modal (For editing coins) -->
+    <!-- Input Modal -->
     <div id="input-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
         <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[300px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
@@ -296,6 +306,37 @@
             <div class="flex flex-col gap-3">
                 <button id="btn-input-ok" class="w-full py-3.5 bg-liquid-blue hover:bg-liquid-blueHover text-white rounded-xl font-semibold transition-colors btn-press shadow-md shadow-blue-500/20">確認</button>
                 <button id="btn-input-cancel" class="w-full py-3.5 bg-white/60 hover:bg-white text-gray-700 rounded-xl font-semibold border border-white transition-colors btn-press">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Host: Send Question Modal -->
+    <div id="host-q-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
+        <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[320px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
+            <h3 id="host-q-title" class="text-lg font-bold mb-4 flex justify-center items-center gap-2"><i class="fas fa-paper-plane text-purple-500"></i> 發送問題</h3>
+            <input type="text" id="host-q-input" value="要哪個？" class="w-full liquid-input rounded-xl px-4 py-3 mb-3 font-medium text-center shadow-inner" placeholder="問題內容" />
+            <input type="text" id="host-q-opt1" value="皮膚箱1" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-2 font-medium text-sm text-center" />
+            <input type="text" id="host-q-opt2" value="皮膚箱2" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-2 font-medium text-sm text-center" />
+            <input type="text" id="host-q-opt3" value="皮膚箱3" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-6 font-medium text-sm text-center" />
+            <div class="flex flex-col gap-3">
+                <button id="btn-host-q-send" class="w-full py-3.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-colors btn-press shadow-md shadow-purple-500/30">發送 (30秒)</button>
+                <button id="btn-host-q-cancel" class="w-full py-3.5 bg-white/60 hover:bg-white text-gray-700 rounded-xl font-semibold border border-white transition-colors btn-press">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client: Answer Question Modal -->
+    <div id="client-q-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-md transition-opacity"></div>
+        <div class="liquid-glass-heavy rounded-[2rem] p-8 max-w-[320px] w-full shadow-2xl relative z-10 animate-scale-in text-center border-t border-white">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30 animate-liquid-morph">
+                <i class="fas fa-question text-3xl text-white"></i>
+            </div>
+            <h3 id="client-q-text" class="text-2xl font-black mb-2 tracking-tight text-gray-800">要哪個？</h3>
+            <p class="text-xs text-liquid-gray font-bold uppercase tracking-widest mb-6 bg-white/50 inline-block px-3 py-1 rounded-full">剩餘時間: <span id="client-q-time" class="text-red-500 text-sm">30s</span></p>
+            <div class="flex flex-col gap-3" id="client-q-opts">
+                <!-- Buttons injected here -->
             </div>
         </div>
     </div>
@@ -326,14 +367,14 @@
         const COL_BETS = 'betting_bets';
 
         let currentUser = null, usersData = [], myData = null, gameState = null, betsData = [];
-        let timerInterval = null, timeLeft = 0;
+        let timeLeft = 0;
         let unsubUsers, unsubState, unsubBets;
+        let targetQuestionUid = null; // 用於紀錄主持人目前要發問的對象
 
         // --- Toast & Modals ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            
             toast.className = `liquid-glass-heavy px-5 py-3 rounded-full flex items-center gap-3 toast-animate pointer-events-auto font-medium text-sm shadow-xl mx-auto w-max`;
             
             let icon = '';
@@ -353,10 +394,16 @@
             }, 2500);
         }
 
+        // Helper 移除並重加 hidden 觸發動畫
+        function openModalWithAnim(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+        }
+
         let confirmCallback = null;
         function showConfirm(message, callback) {
             document.getElementById('confirm-message').textContent = message;
-            document.getElementById('confirm-modal').classList.remove('hidden');
+            openModalWithAnim('confirm-modal');
             confirmCallback = callback;
         }
 
@@ -377,7 +424,7 @@
             const inputEl = document.getElementById('input-modal-value');
             inputEl.placeholder = placeholder;
             inputEl.value = '';
-            document.getElementById('input-modal').classList.remove('hidden');
+            openModalWithAnim('input-modal');
             inputEl.focus();
             inputCallback = callback;
         }
@@ -397,7 +444,7 @@
             ['view-loading', 'view-login', 'view-bind', 'view-host', 'view-client'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            if (viewId) document.getElementById(viewId).classList.remove('hidden');
+            if (viewId) openModalWithAnim(viewId);
         }
 
         // --- Auth 邏輯 ---
@@ -430,18 +477,18 @@
 
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-        // --- 資料庫監聽 ---
+        // --- 資料庫與全局計時器 ---
         function setupRealtimeListeners() {
             unsubUsers = onSnapshot(collection(db, COL_USERS), (snap) => {
                 usersData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 myData = usersData.find(u => u.uid === currentUser.uid);
                 renderLogic();
+                updateClientQuestionModal();
             });
 
             unsubState = onSnapshot(collection(db, COL_STATE), (snap) => {
                 const current = snap.docs.find(d => d.id === 'current');
                 gameState = current ? current.data() : null;
-                handleTimer();
                 renderLogic();
             });
 
@@ -455,8 +502,48 @@
             if (unsubUsers) unsubUsers();
             if (unsubState) unsubState();
             if (unsubBets) unsubBets();
-            if (timerInterval) clearInterval(timerInterval);
         }
+
+        // 全局 1 秒 Ticker 處理所有倒數
+        setInterval(() => {
+            const now = Date.now();
+            
+            // 1. 處理大廳全域押注倒數
+            if (gameState && gameState.status === 'betting') {
+                const elapsed = Math.floor((now - gameState.startTime) / 1000);
+                timeLeft = Math.max(0, 10 - elapsed);
+                updateClientUIFromTimer();
+                if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
+            }
+
+            // 2. 處理玩家個人的問答倒數
+            if (currentUser && currentUser.email !== ADMIN_EMAIL && myData?.personalQuestion && !myData.personalQuestion.answer) {
+                const qElapsed = Math.floor((now - myData.personalQuestion.startTime) / 1000);
+                const qLeft = Math.max(0, 30 - qElapsed);
+                const qTimerEl = document.getElementById('client-q-time');
+                if (qLeft > 0) {
+                    if (qTimerEl) qTimerEl.textContent = `${qLeft}s`;
+                } else {
+                    document.getElementById('client-q-modal').classList.add('hidden');
+                    updateDoc(doc(db, COL_USERS, currentUser.uid), { 'personalQuestion.answer': '超時' });
+                }
+            }
+
+            // 3. 處理主持端查看的問答倒數狀態
+            if (currentUser?.email === ADMIN_EMAIL) {
+                usersData.forEach(u => {
+                    if (u.personalQuestion && !u.personalQuestion.answer) {
+                        const qElapsed = Math.floor((now - u.personalQuestion.startTime) / 1000);
+                        const qLeft = Math.max(0, 30 - qElapsed);
+                        const el = document.getElementById(`q-status-${u.uid}`);
+                        if (el) {
+                            if (qLeft > 0) el.textContent = `答題中 (${qLeft}s)`;
+                            else el.textContent = `超時`;
+                        }
+                    }
+                });
+            }
+        }, 1000);
 
         function renderLogic() {
             if (!currentUser) return;
@@ -513,15 +600,29 @@
             const sortedUsers = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
             
             if (sortedUsers.length === 0) {
-                tbody.innerHTML = `<tr><td colSpan="4" class="py-8 text-center text-liquid-gray text-sm">無玩家</td></tr>`;
+                tbody.innerHTML = `<tr><td colSpan="5" class="py-8 text-center text-liquid-gray text-sm">無玩家</td></tr>`;
             } else {
                 sortedUsers.forEach((u, index) => {
                     const userBet = betsData.find(b => b.uid === u.uid);
+                    // 大廳狀態
                     let betHtml = `<span class="text-gray-400/80 text-xs font-medium border border-gray-300/50 px-2 py-1 rounded-md">閒置</span>`;
-                    if (userBet) {
-                        betHtml = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-white/60 text-liquid-blue border border-blue-100 shadow-sm">選 ${userBet.option}</span>`;
-                    }
+                    if (userBet) betHtml = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-white/60 text-liquid-blue border border-blue-100 shadow-sm">選 ${userBet.option}</span>`;
                     
+                    // 個人問答狀態
+                    let pqHtml = `<button class="btn-send-pq text-purple-500 hover:bg-white/60 px-2 py-1 rounded-md text-xs font-bold border border-purple-200 transition-all shadow-sm flex items-center gap-1 btn-press" data-uid="${u.uid}"><i class="fas fa-paper-plane"></i>發問</button>`;
+                    if (u.personalQuestion) {
+                        if (u.personalQuestion.answer) {
+                            let ansColor = u.personalQuestion.answer === '超時' ? 'text-red-500 border-red-200 bg-red-50/50' : 'text-green-600 border-green-200 bg-green-50/50';
+                            pqHtml = `
+                                <div class="flex items-center gap-1.5">
+                                    <span class="px-2 py-1 rounded-md text-[10px] font-bold ${ansColor} border shadow-sm max-w-[80px] truncate" title="${u.personalQuestion.answer}">${u.personalQuestion.answer}</span>
+                                    <button class="btn-clear-pq text-gray-400 hover:text-gray-600 p-1 btn-press" data-uid="${u.uid}" title="清除重置"><i class="fas fa-times-circle"></i></button>
+                                </div>`;
+                        } else {
+                            pqHtml = `<span id="q-status-${u.uid}" class="text-[10px] font-bold text-orange-500 bg-orange-50/50 border border-orange-200 px-2 py-1 rounded-md shadow-sm">答題中...</span>`;
+                        }
+                    }
+
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-white/40 transition-colors";
                     tr.innerHTML = `
@@ -531,54 +632,78 @@
                         </td>
                         <td class="py-3 px-2 text-sm font-black text-gray-800">${u.coins || 0}</td>
                         <td class="py-3 px-2">${betHtml}</td>
-                        <td class="py-3 px-2 text-right flex items-center justify-end gap-1">
-                            <button class="btn-add-coins text-green-500 hover:text-green-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="調整金幣">
-                                <i class="fas fa-plus-circle text-sm"></i>
-                            </button>
-                            <button class="btn-reset-coins text-red-400 hover:text-red-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="歸零">
-                                <i class="fas fa-trash-can text-sm"></i>
-                            </button>
+                        <td class="py-3 px-2">${pqHtml}</td>
+                        <td class="py-3 px-2 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button class="btn-add-coins text-green-500 hover:text-green-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="調整金幣"><i class="fas fa-plus-circle text-sm"></i></button>
+                                <button class="btn-reset-coins text-red-400 hover:text-red-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="歸零"><i class="fas fa-trash-can text-sm"></i></button>
+                            </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
 
-                // 綁定「歸零」按鈕
-                document.querySelectorAll('.btn-reset-coins').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const uid = e.currentTarget.getAttribute('data-uid');
-                        const u = usersData.find(x => x.uid === uid);
-                        if(u) {
-                            showConfirm(`清空 ${u.robloxId} 的金幣？`, async () => {
-                                await updateDoc(doc(db, COL_USERS, uid), { coins: 0 });
-                                showToast("已清空", "success");
-                            });
-                        }
+                // 綁定各按鈕事件
+                document.querySelectorAll('.btn-reset-coins').forEach(btn => btn.addEventListener('click', (e) => {
+                    const uid = e.currentTarget.getAttribute('data-uid');
+                    const u = usersData.find(x => x.uid === uid);
+                    if(u) showConfirm(`清空 ${u.robloxId} 的金幣？`, async () => {
+                        await updateDoc(doc(db, COL_USERS, uid), { coins: 0 });
+                        showToast("已清空", "success");
                     });
-                });
+                }));
 
-                // 綁定「增加金幣」按鈕
-                document.querySelectorAll('.btn-add-coins').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const uid = e.currentTarget.getAttribute('data-uid');
-                        const u = usersData.find(x => x.uid === uid);
-                        if(u) {
-                            showInputModal(`修改 ${u.robloxId} 金幣`, "輸入增加數量 (可為負數)", async (val) => {
-                                const amount = parseInt(val);
-                                if (!isNaN(amount)) {
-                                    const newCoins = (u.coins || 0) + amount;
-                                    await updateDoc(doc(db, COL_USERS, uid), { coins: newCoins < 0 ? 0 : newCoins });
-                                    showToast("金幣已更新", "success");
-                                } else if (val.trim() !== "") {
-                                    showToast("無效的數字", "error");
-                                }
-                            });
-                        }
+                document.querySelectorAll('.btn-add-coins').forEach(btn => btn.addEventListener('click', (e) => {
+                    const uid = e.currentTarget.getAttribute('data-uid');
+                    const u = usersData.find(x => x.uid === uid);
+                    if(u) showInputModal(`修改 ${u.robloxId} 金幣`, "輸入增減數量(如: 5 或 -2)", async (val) => {
+                        const amount = parseInt(val);
+                        if (!isNaN(amount)) {
+                            const newCoins = (u.coins || 0) + amount;
+                            await updateDoc(doc(db, COL_USERS, uid), { coins: newCoins < 0 ? 0 : newCoins });
+                            showToast("金幣已更新", "success");
+                        } else if (val.trim() !== "") showToast("無效的數字", "error");
                     });
-                });
+                }));
+
+                document.querySelectorAll('.btn-send-pq').forEach(btn => btn.addEventListener('click', (e) => {
+                    targetQuestionUid = e.currentTarget.getAttribute('data-uid');
+                    document.getElementById('host-q-input').value = '要哪個？';
+                    document.getElementById('host-q-opt1').value = '皮膚箱1';
+                    document.getElementById('host-q-opt2').value = '皮膚箱2';
+                    document.getElementById('host-q-opt3').value = '皮膚箱3';
+                    openModalWithAnim('host-q-modal');
+                }));
+
+                document.querySelectorAll('.btn-clear-pq').forEach(btn => btn.addEventListener('click', async (e) => {
+                    const uid = e.currentTarget.getAttribute('data-uid');
+                    await updateDoc(doc(db, COL_USERS, uid), { personalQuestion: null });
+                }));
             }
         }
 
+        // 主持人發送個人問答
+        document.getElementById('btn-host-q-cancel').addEventListener('click', () => {
+            document.getElementById('host-q-modal').classList.add('hidden');
+        });
+        document.getElementById('btn-host-q-send').addEventListener('click', async () => {
+            if (!targetQuestionUid) return;
+            const q = document.getElementById('host-q-input').value.trim();
+            const o1 = document.getElementById('host-q-opt1').value.trim();
+            const o2 = document.getElementById('host-q-opt2').value.trim();
+            const o3 = document.getElementById('host-q-opt3').value.trim();
+            if(!q || !o1 || !o2 || !o3) return showToast("所有欄位必填", "warning");
+
+            try {
+                await updateDoc(doc(db, COL_USERS, targetQuestionUid), {
+                    personalQuestion: { q: q, opts: [o1, o2, o3], startTime: Date.now(), answer: null }
+                });
+                document.getElementById('host-q-modal').classList.add('hidden');
+                showToast("提問已發送", "success");
+            } catch(e) { showToast("錯誤", "error"); }
+        });
+
+        // 大廳發起押注
         document.getElementById('btn-start-bet').addEventListener('click', async () => {
             const title = document.getElementById('host-title').value;
             const optA = document.getElementById('host-optA').value;
@@ -635,20 +760,7 @@
             } catch (err) { errText.textContent = "網路錯誤"; errDiv.classList.remove('hidden'); }
         });
 
-        // --- 計時器 ---
-        function handleTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            if (gameState?.status === 'betting') {
-                timerInterval = setInterval(() => {
-                    const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
-                    const remaining = 10 - elapsed;
-                    if (remaining <= 0) { timeLeft = 0; clearInterval(timerInterval); } else { timeLeft = remaining; }
-                    updateClientUIFromTimer();
-                    if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
-                }, 100);
-            } else { timeLeft = 0; }
-        }
-
+        // --- 客戶端更新邏輯 ---
         function updateClientUIFromTimer() {
             if (currentUser?.email === ADMIN_EMAIL || !myData) return;
             const timeSpan = document.getElementById('client-time-left');
@@ -665,18 +777,61 @@
             }
             
             if (timeLeft <= 0) {
+                // 時間到不變淡，單純加上不可點擊狀態
                 document.querySelectorAll('.btn-bet').forEach(b => {
                     b.disabled = true; 
-                    b.classList.add('opacity-40', 'cursor-not-allowed', 'scale-95');
-                    b.classList.remove('hover:-translate-y-1', 'btn-press', 'shadow-md');
+                    b.classList.add('cursor-not-allowed');
+                    b.classList.remove('hover:-translate-y-1', 'btn-press', 'shadow-md', 'hover:shadow-lg');
                 });
             }
         }
 
-        // --- 用戶主競技場 ---
+        // 客戶端接收個人問答
+        function updateClientQuestionModal() {
+            if (currentUser?.email === ADMIN_EMAIL || !myData) return;
+            const modal = document.getElementById('client-q-modal');
+            
+            if (!myData.personalQuestion) {
+                modal.classList.add('hidden');
+                return;
+            }
+            
+            const pq = myData.personalQuestion;
+            const elapsed = Math.floor((Date.now() - pq.startTime) / 1000);
+            
+            if (!pq.answer && elapsed < 30) {
+                if (modal.classList.contains('hidden')) {
+                    document.getElementById('client-q-text').textContent = pq.q;
+                    const optsContainer = document.getElementById('client-q-opts');
+                    optsContainer.innerHTML = '';
+                    pq.opts.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = "w-full py-4 bg-white/80 hover:bg-white text-gray-800 rounded-2xl font-bold border border-gray-200 transition-all btn-press shadow-sm text-lg";
+                        btn.textContent = opt;
+                        btn.onclick = async () => {
+                            modal.classList.add('hidden');
+                            await updateDoc(doc(db, COL_USERS, currentUser.uid), { 'personalQuestion.answer': opt });
+                            showToast(`已選: ${opt}`, 'success');
+                        };
+                        optsContainer.appendChild(btn);
+                    });
+                    openModalWithAnim('client-q-modal');
+                }
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // 用戶主競技場渲染
         function renderClient() {
             document.getElementById('client-roblox-id').textContent = myData.robloxId;
             document.getElementById('client-coins').textContent = myData.coins || 0;
+            
+            // 計算目前排名
+            const sortedUsersDesc = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
+            const myRankIndex = sortedUsersDesc.findIndex(u => u.uid === currentUser.uid);
+            document.getElementById('client-rank-badge').textContent = `#${myRankIndex + 1}`;
+
             const arena = document.getElementById('client-arena-content');
             const myBet = betsData.find(b => b.uid === currentUser.uid);
 
@@ -708,22 +863,35 @@
                             </div>
                         </div>`;
 
+                // 不論是否已押注，都顯示兩個按鈕，不再取代畫面
+                const btnA_selected = myBet && myBet.option === 'A';
+                const btnB_selected = myBet && myBet.option === 'B';
+                
+                const disableInteraction = (timeLeft <= 0 || myBet);
+                const classBase = "rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden";
+                const classInteract = disableInteraction ? "cursor-not-allowed" : "hover:-translate-y-1 shadow-md hover:shadow-lg btn-press";
+                
+                const styleA = btnA_selected ? "ring-4 ring-green-400 bg-white shadow-lg scale-105" : "bg-white/80 border border-white";
+                const styleB = btnB_selected ? "ring-4 ring-green-400 bg-white shadow-lg scale-105" : "bg-white/80 border border-white";
+
+                content += `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button class="btn-bet ${classBase} ${styleA} ${classInteract}" data-opt="A" ${disableInteraction ? 'disabled' : ''}>
+                            <span class="w-10 h-10 rounded-full ${btnA_selected ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-500'} flex items-center justify-center text-sm font-black mb-1 transition-colors">A</span>
+                            <span class="text-2xl font-black text-gray-800">${gameState.optionA}</span>
+                            ${btnA_selected ? '<div class="absolute top-3 right-3 text-green-500 text-lg"><i class="fas fa-check-circle"></i></div>' : ''}
+                        </button>
+                        <button class="btn-bet ${classBase} ${styleB} ${classInteract}" data-opt="B" ${disableInteraction ? 'disabled' : ''}>
+                            <span class="w-10 h-10 rounded-full ${btnB_selected ? 'bg-green-100 text-green-600' : 'bg-purple-50 text-purple-500'} flex items-center justify-center text-sm font-black mb-1 transition-colors">B</span>
+                            <span class="text-2xl font-black text-gray-800">${gameState.optionB}</span>
+                            ${btnB_selected ? '<div class="absolute top-3 right-3 text-green-500 text-lg"><i class="fas fa-check-circle"></i></div>' : ''}
+                        </button>
+                    </div>
+                </div>`;
+
+                arena.innerHTML = content;
+                
                 if (!myBet) {
-                    const disableClass = timeLeft <= 0 ? "opacity-40 cursor-not-allowed scale-95" : "hover:-translate-y-1 shadow-md hover:shadow-lg btn-press";
-                    content += `
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button class="btn-bet bg-white/80 backdrop-blur-sm border border-white rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 ${disableClass}" data-opt="A">
-                                <span class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-sm font-black text-blue-500 mb-1">A</span>
-                                <span class="text-2xl font-black text-gray-800">${gameState.optionA}</span>
-                            </button>
-                            <button class="btn-bet bg-white/80 backdrop-blur-sm border border-white rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 ${disableClass}" data-opt="B">
-                                <span class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-sm font-black text-purple-500 mb-1">B</span>
-                                <span class="text-2xl font-black text-gray-800">${gameState.optionB}</span>
-                            </button>
-                        </div>
-                    </div>`;
-                    arena.innerHTML = content;
-                    
                     document.querySelectorAll('.btn-bet').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
                             if (timeLeft <= 0) return;
@@ -733,17 +901,6 @@
                             } catch (err) { showToast("錯誤", "error"); }
                         });
                     });
-                } else {
-                    const chosenText = myBet.option === 'A' ? gameState.optionA : gameState.optionB;
-                    arena.innerHTML = content + `
-                        <div class="py-6 animate-scale-in">
-                            <div class="w-16 h-16 bg-white border border-white text-green-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 shadow-sm">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">已選</p>
-                            <h3 class="text-2xl font-black text-gray-800">${chosenText}</h3>
-                        </div>
-                    </div>`;
                 }
                 return;
             }
