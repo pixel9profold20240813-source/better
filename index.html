@@ -36,7 +36,7 @@
         <!-- 1. Loading View -->
         <div id="view-loading" class="flex flex-col items-center justify-center min-h-[80vh]">
             <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-4"></i>
-            <p id="loading-text" class="text-gray-400">系統載入中...</p>
+            <p id="loading-text" class="text-gray-400">系統驗證中，請稍候...</p>
         </div>
 
         <!-- 2. Login View -->
@@ -46,8 +46,9 @@
                 <h1 class="text-3xl font-bold text-white mb-2">實時對決押注</h1>
                 <p class="text-gray-400 mb-8">請使用 Google 帳號登入以繼續</p>
                 <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2">
-                    <i class="fab fa-google text-xl"></i> 使用 Google 登入
+                    <i class="fab fa-google text-xl"></i> 使用 Google 帳號登入
                 </button>
+                <p class="text-xs text-gray-500 mt-4">提示：登入時若被瀏覽器阻擋，請允許彈出視窗</p>
             </div>
         </div>
 
@@ -158,25 +159,24 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- Custom Modal for Confirmation -->
-    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 max-w-sm w-full shadow-2xl">
             <h3 class="text-xl font-bold mb-4 text-white">確認操作</h3>
             <p id="confirm-message" class="text-gray-300 mb-6"></p>
             <div class="flex justify-end gap-3">
                 <button id="btn-confirm-cancel" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">取消</button>
-                <button id="btn-confirm-ok" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold transition">確定</button>
+                <button id="btn-confirm-ok" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-bold transition">確定</button>
             </div>
         </div>
     </div>
 
     <!-- Firebase Logic -->
     <script type="module">
-        // Import Firebase SDK v11 (使用 signInWithRedirect 解決 Safari 阻擋問題)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // 改用 signInWithPopup 來避開 Safari 跳轉問題
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyAjpVHUYvBYh1jOylLlX9gHrTLibEFjF2I",
             authDomain: "realtimebettingapp.firebaseapp.com",
@@ -191,22 +191,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Constants & Globals
         const ADMIN_EMAIL = 'pixel9profold20240813@gmail.com';
         const COL_USERS = 'betting_users';
         const COL_STATE = 'betting_state';
         const COL_BETS = 'betting_bets';
 
-        let currentUser = null;
-        let usersData = [];
-        let myData = null;
-        let gameState = null;
-        let betsData = [];
-        let timerInterval = null;
-        let timeLeft = 0;
+        let currentUser = null, usersData = [], myData = null, gameState = null, betsData = [];
+        let timerInterval = null, timeLeft = 0;
         let unsubUsers, unsubState, unsubBets;
 
-        // Custom UI Components (Toast & Modal)
+        // --- UI 工具 ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -228,6 +222,7 @@
             document.getElementById('confirm-modal').classList.remove('hidden');
             confirmCallback = callback;
         }
+
         document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
             document.getElementById('confirm-modal').classList.add('hidden');
             confirmCallback = null;
@@ -245,14 +240,8 @@
             if (viewId) document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // ==========================================
-        // Auth Setup (處理 Safari 跳轉回來的結果)
-        // ==========================================
-        getRedirectResult(auth).catch((error) => {
-            console.error("登入跳轉錯誤:", error);
-            showView('view-login');
-            showToast("登入發生錯誤，請確定已將網址加入Firebase白名單", "error");
-        });
+        // --- Auth 核心邏輯 (彈出視窗版) ---
+        showView('view-loading'); 
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
@@ -268,22 +257,27 @@
             }
         });
 
-        // 登入按鈕改為 signInWithRedirect (解決 Safari 擋彈窗)
         document.getElementById('btn-login').addEventListener('click', () => {
-            document.getElementById('loading-text').textContent = "正在導向 Google 登入...";
+            document.getElementById('loading-text').textContent = "請在彈出的視窗完成登入...";
             showView('view-loading');
+            
             const provider = new GoogleAuthProvider();
-            signInWithRedirect(auth, provider);
+            // 使用 Popup (彈出視窗) 登入，避開 Safari 跳轉限制
+            signInWithPopup(auth, provider).then((result) => {
+                showToast("登入成功！", "success");
+            }).catch((error) => {
+                console.error("登入錯誤:", error);
+                showView('view-login');
+                if(error.code !== 'auth/popup-closed-by-user') {
+                    showToast("登入發生錯誤: " + error.message, "error");
+                }
+            });
         });
 
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-        // ==========================================
-        // Data Listeners & Logic
-        // ==========================================
+        // --- 資料庫監聽與邏輯 ---
         function setupRealtimeListeners() {
-            showView('view-loading');
-            
             unsubUsers = onSnapshot(collection(db, COL_USERS), (snap) => {
                 usersData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 myData = usersData.find(u => u.uid === currentUser.uid);
@@ -325,7 +319,7 @@
             }
         }
 
-        // --- Host UI ---
+        // --- 主持端介面 ---
         function renderHost() {
             const stateDiv = document.getElementById('host-state-content');
             const resolvePanel = document.getElementById('host-resolve-panel');
@@ -444,7 +438,7 @@
         document.getElementById('btn-resolve-a').addEventListener('click', () => resolveBet('A'));
         document.getElementById('btn-resolve-b').addEventListener('click', () => resolveBet('B'));
 
-        // --- Client UI ---
+        // --- 用戶端介面 ---
         document.getElementById('btn-bind').addEventListener('click', async () => {
             const input = document.getElementById('input-roblox').value.trim();
             const errDiv = document.getElementById('bind-error');
