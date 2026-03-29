@@ -348,7 +348,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const ADMIN_EMAIL = 'pixel9profold20240813@gmail.com';
+        // 管理員名單改成陣列
+        const ADMIN_EMAILS = ['pixel9profold20240813@gmail.com', 'tw2019192@gmail.com'];
         const COL_USERS = 'betting_users';
         const COL_STATE = 'betting_state';
         const COL_BETS = 'betting_bets';
@@ -383,7 +384,6 @@
             }, 2500);
         }
 
-        // Helper 移除並重加 hidden 觸發動畫
         function openModalWithAnim(id) {
             const el = document.getElementById(id);
             el.classList.remove('hidden');
@@ -454,7 +454,7 @@
             } else {
                 document.getElementById('navbar').classList.remove('hidden');
                 document.getElementById('nav-email').textContent = user.email;
-                if (user.email === ADMIN_EMAIL) {
+                if (ADMIN_EMAILS.includes(user.email)) {
                     document.getElementById('nav-title').textContent = '控制中心';
                 }
                 setupRealtimeListeners();
@@ -502,19 +502,18 @@
             if (gameState && gameState.status === 'betting') {
                 timeLeft = Math.max(0, 10 - Math.floor((Date.now() - gameState.startTime) / 1000));
                 updateClientUIFromTimer();
-                if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
+                if (currentUser && ADMIN_EMAILS.includes(currentUser.email)) renderHost();
             }
         }, 1000);
 
         function renderLogic() {
             if (!currentUser) return;
             
-            // 【修復核心】：在每次資料庫更新導致重新渲染前，強制作一次即時時間校準
             if (gameState && gameState.status === 'betting') {
                 timeLeft = Math.max(0, 10 - Math.floor((Date.now() - gameState.startTime) / 1000));
             }
 
-            if (currentUser.email === ADMIN_EMAIL) {
+            if (ADMIN_EMAILS.includes(currentUser.email)) {
                 showView('view-host');
                 renderHost();
             } else {
@@ -703,7 +702,7 @@
 
         // --- 客戶端更新邏輯 ---
         function updateClientUIFromTimer() {
-            if (currentUser?.email === ADMIN_EMAIL || !myData) return;
+            if ((currentUser && ADMIN_EMAILS.includes(currentUser.email)) || !myData) return;
             const timeSpan = document.getElementById('client-time-left');
             const timeProgress = document.getElementById('time-progress');
             
@@ -776,7 +775,6 @@
                 const btnA_selected = myBet && myBet.option === 'A';
                 const btnB_selected = myBet && myBet.option === 'B';
                 
-                // 【修復核心】：利用已經校準好的 timeLeft 判斷是否鎖住按鈕
                 const disableInteraction = (timeLeft <= 0 || myBet);
                 const classBase = "rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden";
                 const classInteract = disableInteraction ? "cursor-not-allowed" : "hover:-translate-y-1 shadow-md hover:shadow-lg btn-press";
