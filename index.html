@@ -58,14 +58,19 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* 隱藏捲軸但保持滾動 */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes scale-in {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
     </style>
 </head>
 <body class="p-4 sm:p-6">
 
-    <!--導覽列-->
+    <!-- 導覽列 -->
     <nav id="navbar" class="hidden fixed top-4 left-4 right-4 z-50 flex justify-between items-center px-5 py-3 liquid-glass rounded-2xl">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 bg-liquid-blue rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -81,13 +86,11 @@
 
     <main class="max-w-4xl mx-auto pt-20 pb-10">
         
-        <!-- 載入中 -->
         <div id="view-loading" class="flex flex-col items-center justify-center py-20">
             <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
             <p class="mt-4 font-bold text-liquid-gray animate-pulse">連線中...</p>
         </div>
 
-        <!-- 登入頁 -->
         <div id="view-login" class="hidden flex flex-col items-center justify-center py-12">
             <div class="liquid-glass p-10 rounded-[2.5rem] text-center max-w-sm w-full">
                 <div class="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-100 animate-liquid-morph">
@@ -101,7 +104,6 @@
             </div>
         </div>
 
-        <!-- 綁定 ID 頁 -->
         <div id="view-bind" class="hidden">
             <div class="liquid-glass p-8 rounded-[2rem] max-w-md mx-auto">
                 <h2 class="text-2xl font-black text-gray-800 mb-2">身分設定</h2>
@@ -121,10 +123,9 @@
             </div>
         </div>
 
-        <!-- 主持端介面 -->
+        <!-- 主持端 -->
         <div id="view-host" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <!-- 控制面板 -->
                 <div class="md:col-span-5 space-y-6">
                     <div class="liquid-glass p-6 rounded-[2rem] shadow-sm">
                         <div class="flex items-center gap-2 mb-4">
@@ -132,7 +133,7 @@
                             <h3 class="font-black text-gray-800">發起新對決</h3>
                         </div>
                         <div class="space-y-3">
-                            <input type="text" id="host-title" placeholder="對決主題 (如: 下一場誰贏?)" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
+                            <input type="text" id="host-title" placeholder="對決主題" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
                             <div class="grid grid-cols-2 gap-3">
                                 <input type="text" id="host-optA" placeholder="選項 A" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
                                 <input type="text" id="host-optB" placeholder="選項 B" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
@@ -142,27 +143,22 @@
                             </button>
                         </div>
                     </div>
-
                     <div id="host-resolve-panel" class="hidden liquid-glass p-6 rounded-[2rem] shadow-sm border-2 border-white">
                         <div class="flex items-center gap-2 mb-4">
                             <i class="fas fa-trophy text-yellow-500"></i>
                             <h3 class="font-black text-gray-800">結算當前局</h3>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <button id="btn-resolve-a" class="py-4 bg-white/80 hover:bg-white text-blue-600 rounded-2xl font-black border border-blue-100 shadow-sm btn-press">A 勝</button>
-                            <button id="btn-resolve-b" class="py-4 bg-white/80 hover:bg-white text-purple-600 rounded-2xl font-black border border-purple-100 shadow-sm btn-press">B 勝</button>
+                            <button id="btn-resolve-a" class="py-4 bg-white/80 hover:bg-white text-blue-600 rounded-2xl font-black border border-blue-100 btn-press">A 勝</button>
+                            <button id="btn-resolve-b" class="py-4 bg-white/80 hover:bg-white text-purple-600 rounded-2xl font-black border border-purple-100 btn-press">B 勝</button>
                         </div>
                     </div>
                 </div>
-
-                <!-- 玩家狀態 -->
                 <div class="md:col-span-7">
                     <div class="liquid-glass p-6 rounded-[2.5rem] h-full shadow-sm flex flex-col">
-                        <div class="flex items-center justify-between mb-4 px-2">
-                            <h3 class="font-black text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-users text-gray-400"></i> 玩家排行與狀態
-                            </h3>
-                        </div>
+                        <h3 class="font-black text-gray-800 flex items-center gap-2 mb-4 px-2">
+                            <i class="fas fa-users text-gray-400"></i> 玩家排行榜
+                        </h3>
                         <div id="host-state-content" class="mb-4"></div>
                         <div class="overflow-x-auto hide-scrollbar flex-1">
                             <table class="w-full text-left">
@@ -170,7 +166,7 @@
                                     <tr>
                                         <th class="pb-3 px-2">玩家 ID</th>
                                         <th class="pb-3 px-2">金幣</th>
-                                        <th class="pb-3 px-2">目前押注</th>
+                                        <th class="pb-3 px-2">押注</th>
                                         <th class="pb-3 px-2">問答/動作</th>
                                         <th class="pb-3 px-2 text-right">管理</th>
                                     </tr>
@@ -183,80 +179,65 @@
             </div>
         </div>
 
-        <!-- 玩家端介面 -->
+        <!-- 玩家端 -->
         <div id="view-client" class="hidden space-y-6">
-            <!-- 個人資訊卡 -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm">
                     <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">您的 ID</p>
                     <p id="client-roblox-id" class="text-lg font-black text-gray-800 truncate">--</p>
                 </div>
-                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm">
                     <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">持有金幣</p>
                     <div class="flex items-center gap-2">
                         <i class="fas fa-coins text-yellow-500 text-sm"></i>
                         <p id="client-coins" class="text-lg font-black text-gray-800">0</p>
                     </div>
                 </div>
-                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
-                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">目前排名</p>
-                    <span id="client-rank-badge" class="inline-block px-3 py-0.5 bg-gray-800 text-white text-xs font-black rounded-lg">#--</span>
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm">
+                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">排名</p>
+                    <span id="client-rank-badge" class="px-3 py-0.5 bg-gray-800 text-white text-xs font-black rounded-lg">#--</span>
                 </div>
-                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
-                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">連線狀態</p>
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-xs font-bold text-green-600">優良</span>
-                    </div>
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm">
+                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">連線</p>
+                    <div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span><span class="text-xs font-bold text-green-600">正常</span></div>
                 </div>
             </div>
-
-            <!-- 競技場區塊 -->
             <div id="client-arena-content"></div>
         </div>
     </main>
 
-    <!-- 個人問答 Modal (用戶端) -->
+    <!-- Modals (原本的 UI 結構) -->
     <div id="client-q-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-blue-900/10 backdrop-blur-md">
         <div class="liquid-glass-heavy w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-t-4 border-liquid-blue animate-scale-in">
             <div class="flex justify-between items-center mb-6">
                 <span class="px-3 py-1 bg-blue-50 text-liquid-blue text-[10px] font-black rounded-full border border-blue-100">主持人提問</span>
-                <span id="client-q-time" class="text-xs font-black text-orange-500 bg-orange-50 px-2 py-1 rounded-lg border border-orange-100">30s</span>
+                <span id="client-q-time" class="text-xs font-black text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">30s</span>
             </div>
             <h3 id="client-q-text" class="text-2xl font-black text-gray-800 mb-8 leading-tight">--</h3>
             <div id="client-q-opts" class="space-y-3"></div>
         </div>
     </div>
 
-    <!-- 主持人發問 Modal -->
     <div id="host-q-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/20 backdrop-blur-sm">
         <div class="liquid-glass-heavy w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
-            <h3 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
-                <i class="fas fa-paper-plane text-purple-500"></i> 發送個人問答
-            </h3>
+            <h3 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2"><i class="fas fa-paper-plane text-purple-500"></i> 發送問答</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">問題內容</label>
-                    <input type="text" id="host-q-input" class="w-full px-4 py-3 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none font-bold mt-1">
-                </div>
-                <div class="grid grid-cols-1 gap-2">
-                    <input type="text" id="host-q-opt1" placeholder="選項 1" class="w-full px-4 py-2 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none text-sm">
-                    <input type="text" id="host-q-opt2" placeholder="選項 2" class="w-full px-4 py-2 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none text-sm">
-                    <input type="text" id="host-q-opt3" placeholder="選項 3" class="w-full px-4 py-2 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none text-sm">
-                </div>
+                <input type="text" id="host-q-input" placeholder="問題" class="w-full px-4 py-3 bg-gray-100/50 border rounded-xl font-bold">
+                <input type="text" id="host-q-opt1" placeholder="選項 1" class="w-full px-4 py-2 bg-gray-100/50 border rounded-xl text-sm">
+                <input type="text" id="host-q-opt2" placeholder="選項 2" class="w-full px-4 py-2 bg-gray-100/50 border rounded-xl text-sm">
+                <input type="text" id="host-q-opt3" placeholder="選項 3" class="w-full px-4 py-2 bg-gray-100/50 border rounded-xl text-sm">
                 <div class="flex gap-3 pt-4">
                     <button id="btn-host-q-cancel" class="flex-1 py-3 text-gray-500 font-bold">取消</button>
-                    <button id="btn-host-q-send" class="flex-2 px-8 py-3 bg-purple-500 text-white rounded-xl font-bold shadow-lg shadow-purple-100 btn-press">發送</button>
+                    <button id="btn-host-q-send" class="flex-2 px-8 py-3 bg-purple-500 text-white rounded-xl font-bold btn-press">發送</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 通知與通用 Modal -->
     <div id="toast-container" class="fixed bottom-6 left-0 right-0 z-[200] flex flex-col items-center gap-3 pointer-events-none"></div>
 
     <div id="confirm-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/10 backdrop-blur-sm">
-        <div class="liquid-glass-heavy w-full max-w-xs rounded-[2rem] p-6 text-center shadow-2xl">
+        <div class="liquid-glass-heavy w-full max-w-xs rounded-[2rem] p-6 text-center">
             <p id="confirm-message" class="text-gray-800 font-bold mb-6"></p>
             <div class="flex gap-3">
                 <button id="btn-confirm-cancel" class="flex-1 py-3 text-gray-400 font-bold text-sm">取消</button>
@@ -266,9 +247,9 @@
     </div>
 
     <div id="input-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/10 backdrop-blur-sm">
-        <div class="liquid-glass-heavy w-full max-w-xs rounded-[2rem] p-6 shadow-2xl">
+        <div class="liquid-glass-heavy w-full max-w-xs rounded-[2rem] p-6">
             <h4 id="input-modal-title" class="text-gray-800 font-black mb-4 px-1"></h4>
-            <input type="text" id="input-modal-value" class="w-full px-4 py-3 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none font-bold mb-6">
+            <input type="text" id="input-modal-value" class="w-full px-4 py-3 bg-gray-100 rounded-xl focus:outline-none font-bold mb-6">
             <div class="flex gap-3">
                 <button id="btn-input-cancel" class="flex-1 py-3 text-gray-400 font-bold text-sm">取消</button>
                 <button id="btn-input-ok" class="flex-1 py-3 bg-liquid-blue text-white rounded-xl font-bold text-sm btn-press">送出</button>
@@ -276,11 +257,10 @@
         </div>
     </div>
 
-    <!-- Firebase 邏輯核心 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAjpVHUYvBYh1jOylLlX9gHrTLibEFjF2I",
@@ -302,11 +282,8 @@
         const COL_BETS = 'betting_bets';
 
         let currentUser = null, usersData = [], myData = null, gameState = null, betsData = [];
-        let timeLeft = 0;
-        let unsubUsers, unsubState, unsubBets;
-        let targetQuestionUid = null;
+        let timeLeft = 0, unsubUsers, unsubState, unsubBets, targetQuestionUid = null;
         
-        // 防連點與超時鎖定
         window.isSubmittingAnswer = false;
         window.hasHandledTimeout = false; 
 
@@ -314,39 +291,24 @@
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `liquid-glass-heavy px-5 py-3 rounded-full flex items-center gap-3 toast-animate pointer-events-auto font-medium text-sm shadow-xl mx-auto w-max max-w-sm`;
-            
-            let icon = '';
-            if(type === 'success') icon = '<i class="fas fa-check-circle text-green-500 text-lg"></i>';
-            else if(type === 'error') icon = '<i class="fas fa-exclamation-circle text-red-500 text-lg"></i>';
-            else icon = '<i class="fas fa-info-circle text-liquid-blue text-lg"></i>';
-
+            toast.className = `liquid-glass-heavy px-5 py-3 rounded-full flex items-center gap-3 toast-animate pointer-events-auto font-medium text-sm shadow-xl mx-auto w-max max-w-sm z-50`;
+            let icon = type === 'success' ? '<i class="fas fa-check-circle text-green-500 text-lg"></i>' : (type === 'error' ? '<i class="fas fa-exclamation-circle text-red-500 text-lg"></i>' : '<i class="fas fa-info-circle text-liquid-blue text-lg"></i>');
             toast.innerHTML = `${icon} <span class="text-gray-800 tracking-wide break-words">${message}</span>`;
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(-10px)';
-                toast.style.transition = 'all 0.4s ease';
-                setTimeout(() => toast.remove(), 400);
-            }, 3500);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500);
         }
 
         function showView(viewId) {
-            ['view-loading', 'view-login', 'view-bind', 'view-host', 'view-client'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
+            ['view-loading', 'view-login', 'view-bind', 'view-host', 'view-client'].forEach(id => document.getElementById(id).classList.add('hidden'));
             if (viewId) document.getElementById(viewId).classList.remove('hidden');
         }
 
         // --- Auth ---
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            if (!user) {
-                clearListeners();
-                document.getElementById('navbar').classList.add('hidden');
-                showView('view-login');
-            } else {
-                document.getElementById('navbar').classList.remove('hidden');
+            if (!user) { clearListeners(); document.getElementById('navbar').classList.add('hidden'); showView('view-login'); }
+            else { 
+                document.getElementById('navbar').classList.remove('hidden'); 
                 document.getElementById('nav-email').textContent = user.email;
                 if (user.email === ADMIN_EMAIL) document.getElementById('nav-title').textContent = '控制中心';
                 setupRealtimeListeners();
@@ -355,11 +317,8 @@
 
         document.getElementById('btn-login').addEventListener('click', () => {
             const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch((error) => {
-                if(error.code !== 'auth/popup-closed-by-user') showToast("登入錯誤", "error");
-            });
+            signInWithPopup(auth, provider).catch(e => { if(e.code !== 'auth/popup-closed-by-user') showToast("登入錯誤: " + e.message, "error"); });
         });
-
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
         // --- 核心監聽 ---
@@ -369,132 +328,88 @@
                 myData = usersData.find(u => u.uid === currentUser.uid);
                 renderLogic();
                 updateClientQuestionModal();
-            }, (err) => showToast(`同步失敗(U): ${err.message}`, "error"));
-
+            });
             unsubState = onSnapshot(collection(db, COL_STATE), (snap) => {
                 const current = snap.docs.find(d => d.id === 'current');
                 gameState = current ? current.data() : null;
                 renderLogic();
-            }, (err) => showToast(`同步失敗(S): ${err.message}`, "error"));
-
+            });
             unsubBets = onSnapshot(collection(db, COL_BETS), (snap) => {
                 betsData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderLogic();
-            }, (err) => showToast(`同步失敗(B): ${err.message}`, "error"));
+            });
         }
 
-        function clearListeners() {
-            if (unsubUsers) unsubUsers();
-            if (unsubState) unsubState();
-            if (unsubBets) unsubBets();
-        }
+        function clearListeners() { if (unsubUsers) unsubUsers(); if (unsubState) unsubState(); if (unsubBets) unsubBets(); }
 
-        // --- 計時器邏輯 ---
+        // --- 計時器 ---
         setInterval(() => {
             const now = Date.now();
             if (gameState && gameState.status === 'betting') {
-                const elapsed = Math.floor((now - gameState.startTime) / 1000);
-                timeLeft = Math.max(0, 10 - elapsed);
+                timeLeft = Math.max(0, 10 - Math.floor((now - gameState.startTime) / 1000));
                 updateClientUIFromTimer();
-                if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
+                if (currentUser?.email === ADMIN_EMAIL) renderHost();
             }
-
             if (currentUser && currentUser.email !== ADMIN_EMAIL && myData?.personalQuestion && !myData.personalQuestion.answer) {
-                const qElapsed = Math.floor((now - myData.personalQuestion.startTime) / 1000);
-                const qLeft = Math.max(0, 30 - qElapsed);
-                const qTimerEl = document.getElementById('client-q-time');
-                if (qTimerEl) qTimerEl.textContent = `${qLeft}s`;
-                
+                const qLeft = Math.max(0, 30 - Math.floor((now - myData.personalQuestion.startTime) / 1000));
+                if (document.getElementById('client-q-time')) document.getElementById('client-q-time').textContent = `${qLeft}s`;
                 if (qLeft <= 0 && !window.isSubmittingAnswer && !window.hasHandledTimeout) {
                     window.isSubmittingAnswer = true;
                     window.hasHandledTimeout = true;
                     document.getElementById('client-q-modal').classList.add('hidden');
                     setDoc(doc(db, COL_USERS, currentUser.uid), { personalQuestion: { answer: '超時' } }, { merge: true })
-                    .catch(e => showToast(`超時寫入失敗: ${e.message}`, "error"))
-                    .finally(() => window.isSubmittingAnswer = false);
+                    .catch(e => showToast(`超時寫入失敗: ${e.message}`, "error")).finally(() => window.isSubmittingAnswer = false);
                 }
             }
         }, 1000);
 
         function renderLogic() {
             if (!currentUser) return;
-            if (currentUser.email === ADMIN_EMAIL) {
-                showView('view-host');
-                renderHost();
-            } else {
-                if (!myData) showView('view-bind');
-                else { showView('view-client'); renderClient(); }
-            }
+            if (currentUser.email === ADMIN_EMAIL) { showView('view-host'); renderHost(); }
+            else if (!myData) showView('view-bind');
+            else { showView('view-client'); renderClient(); }
         }
 
-        // --- 主持人端 ---
+        // --- 主持端 ---
         function renderHost() {
             const stateDiv = document.getElementById('host-state-content');
             const resolvePanel = document.getElementById('host-resolve-panel');
-            
             if (!gameState) {
                 stateDiv.innerHTML = `<p class="text-center text-gray-400 py-4 text-xs font-bold">目前無活動</p>`;
                 resolvePanel.classList.add('hidden');
             } else {
                 const isBetting = gameState.status === 'betting';
-                stateDiv.innerHTML = `
-                    <div class="bg-white/40 border border-white rounded-2xl p-4 mb-2 shadow-sm">
-                        <h4 class="font-black text-gray-800 text-center mb-2">${gameState.title}</h4>
-                        <div class="flex justify-between text-[11px] font-bold text-gray-500">
-                            <span>${isBetting ? '押注中' : '已結算'}</span>
-                            <span>${isBetting ? timeLeft + 's' : ''}</span>
-                        </div>
-                    </div>`;
+                stateDiv.innerHTML = `<div class="bg-white/40 border border-white rounded-2xl p-4 mb-2 shadow-sm"><h4 class="font-black text-gray-800 text-center mb-1">${gameState.title}</h4><div class="flex justify-between text-[10px] font-bold text-gray-500"><span>${isBetting?'進行中':'已結束'}</span><span>${isBetting?timeLeft+'s':''}</span></div></div>`;
                 isBetting ? resolvePanel.classList.remove('hidden') : resolvePanel.classList.add('hidden');
             }
-
             const tbody = document.getElementById('host-table-body');
             tbody.innerHTML = '';
-            usersData.sort((a,b) => (b.coins||0)-(a.coins||0)).forEach((u, i) => {
-                const userBet = betsData.find(b => b.uid === u.uid);
+            [...usersData].sort((a,b)=>(b.coins||0)-(a.coins||0)).forEach(u => {
+                const bet = betsData.find(b => b.uid === u.uid);
+                let pq = u.personalQuestion ? (u.personalQuestion.answer ? `<span class="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded">${u.personalQuestion.answer}</span>` : `<span class="text-[10px] text-orange-500">答題中</span>`) : '';
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-white/30";
-                
-                let pqStatus = '';
-                if(u.personalQuestion) {
-                    pqStatus = u.personalQuestion.answer 
-                        ? `<span class="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded border border-green-100">${u.personalQuestion.answer}</span>`
-                        : `<span class="text-[10px] text-orange-500 animate-pulse">答題中...</span>`;
-                }
-
                 tr.innerHTML = `
                     <td class="py-3 px-2 font-bold text-sm">${u.robloxId}</td>
-                    <td class="py-3 px-2 font-black">${u.coins || 0}</td>
-                    <td class="py-3 px-2 text-xs font-bold text-liquid-blue">${userBet ? '選 ' + userBet.option : '-'}</td>
-                    <td class="py-3 px-2 flex items-center gap-1">
-                        <button class="btn-send-pq text-[10px] font-black bg-purple-50 text-purple-600 px-2 py-1 rounded border border-purple-100" data-uid="${u.uid}">發問</button>
-                        ${pqStatus}
-                    </td>
-                    <td class="py-3 px-2 text-right">
-                        <button class="btn-add-coins text-green-500 p-1" data-uid="${u.uid}"><i class="fas fa-plus-circle"></i></button>
-                    </td>
-                `;
+                    <td class="py-3 px-2 font-black">${u.coins||0}</td>
+                    <td class="py-3 px-2 text-xs font-bold text-blue-500">${bet?'選 '+bet.option:'-'}</td>
+                    <td class="py-3 px-2 flex items-center gap-1"><button class="btn-send-pq text-[10px] font-black bg-purple-50 text-purple-600 px-2 py-1 rounded border border-purple-100" data-uid="${u.uid}">發問</button>${pq}</td>
+                    <td class="py-3 px-2 text-right"><button class="btn-add-coins text-green-500 p-1" data-uid="${u.uid}"><i class="fas fa-plus-circle"></i></button></td>`;
                 tbody.appendChild(tr);
             });
-
-            // 綁定事件
-            document.querySelectorAll('.btn-send-pq').forEach(btn => btn.onclick = (e) => {
-                targetQuestionUid = e.target.dataset.uid;
-                document.getElementById('host-q-input').value = '你要哪一個？';
-                document.getElementById('host-q-opt1').value = '箱子 A';
-                document.getElementById('host-q-opt2').value = '箱子 B';
-                document.getElementById('host-q-opt3').value = '箱子 C';
+            // 修正：使用 currentTarget 確保不會抓到子元素的 undefined
+            document.querySelectorAll('.btn-send-pq').forEach(b => b.onclick = (e) => {
+                targetQuestionUid = e.currentTarget.dataset.uid;
                 document.getElementById('host-q-modal').classList.remove('hidden');
             });
-
-            document.querySelectorAll('.btn-add-coins').forEach(btn => btn.onclick = (e) => {
+            document.querySelectorAll('.btn-add-coins').forEach(b => b.onclick = (e) => {
                 const uid = e.currentTarget.dataset.uid;
                 const user = usersData.find(u => u.uid === uid);
-                showInputModal(`調整 ${user.robloxId} 金幣`, "輸入數量", async (val) => {
-                    const amt = parseInt(val);
+                showInputModal(`調整 ${user.robloxId} 金幣`, "數量", async (v) => {
+                    const amt = parseInt(v);
                     if(!isNaN(amt)) {
-                        await setDoc(doc(db, COL_USERS, uid), { coins: (user.coins || 0) + amt }, { merge: true });
-                        showToast("金幣已更新", "success");
+                        try {
+                            await setDoc(doc(db, COL_USERS, uid), { coins: (user.coins||0)+amt }, { merge: true });
+                        } catch(err) { showToast("調整失敗: " + err.message, "error"); }
                     }
                 });
             });
@@ -502,44 +417,39 @@
 
         document.getElementById('btn-host-q-send').onclick = async () => {
             const q = document.getElementById('host-q-input').value.trim();
-            const o1 = document.getElementById('host-q-opt1').value.trim();
-            const o2 = document.getElementById('host-q-opt2').value.trim();
-            const o3 = document.getElementById('host-q-opt3').value.trim();
+            const o1 = document.getElementById('host-q-opt1').value, o2 = document.getElementById('host-q-opt2').value, o3 = document.getElementById('host-q-opt3').value;
             if(!q || !o1 || !o2 || !o3) return;
-            await setDoc(doc(db, COL_USERS, targetQuestionUid), {
-                personalQuestion: { q, opts: [o1, o2, o3], startTime: Date.now(), answer: null }
-            }, { merge: true });
-            document.getElementById('host-q-modal').classList.add('hidden');
-            showToast("問題已發送", "success");
+            try {
+                // 防護：確保 targetQuestionUid 存在
+                if (!targetQuestionUid) throw new Error("無效的玩家 ID");
+                await setDoc(doc(db, COL_USERS, targetQuestionUid), { personalQuestion: { q, opts:[o1,o2,o3], startTime:Date.now(), answer:null } }, { merge: true });
+                document.getElementById('host-q-modal').classList.add('hidden');
+                showToast("已發送", "success");
+            } catch(e) { showToast("發送失敗: " + e.message, "error"); }
         };
         document.getElementById('btn-host-q-cancel').onclick = () => document.getElementById('host-q-modal').classList.add('hidden');
 
         document.getElementById('btn-start-bet').onclick = async () => {
-            const t = document.getElementById('host-title').value;
-            const a = document.getElementById('host-optA').value;
-            const b = document.getElementById('host-optB').value;
-            if(!t || !a || !b) return showToast("欄位必填", "error");
-            
-            await Promise.all(betsData.map(bet => deleteDoc(doc(db, COL_BETS, bet.id))));
-            await setDoc(doc(db, COL_STATE, 'current'), {
-                title: t, optionA: a, optionB: b, status: 'betting', startTime: Date.now(), result: null
-            });
-            showToast("押注已開始", "success");
+            const t = document.getElementById('host-title').value, a = document.getElementById('host-optA').value, b = document.getElementById('host-optB').value;
+            if(!t || !a || !b) return;
+            try {
+                await Promise.all(betsData.map(bet => deleteDoc(doc(db, COL_BETS, bet.id))));
+                await setDoc(doc(db, COL_STATE, 'current'), { title:t, optionA:a, optionB:b, status:'betting', startTime:Date.now(), result:null });
+                showToast("押注開始", "success");
+            } catch(e) { showToast("發起失敗: " + e.message, "error"); }
         };
 
         const resolveBet = async (winOpt) => {
-            await setDoc(doc(db, COL_STATE, 'current'), { status: 'resolved', result: winOpt }, { merge: true });
-            let winners = 0;
-            for(const b of betsData) {
-                if(b.option === winOpt) {
-                    const u = usersData.find(x => x.uid === b.uid);
-                    if(u) {
-                        await setDoc(doc(db, COL_USERS, b.uid), { coins: (u.coins || 0) + 1 }, { merge: true });
-                        winners++;
+            try {
+                await setDoc(doc(db, COL_STATE, 'current'), { status:'resolved', result:winOpt }, { merge: true });
+                for(const b of betsData) {
+                    if(b.option === winOpt) {
+                        const u = usersData.find(x => x.uid === b.uid);
+                        if(u) await setDoc(doc(db, COL_USERS, b.uid), { coins: (u.coins||0)+1 }, { merge: true });
                     }
                 }
-            }
-            showToast(`結算完成，${winners} 人獲金幣`, "success");
+                showToast("結算完成", "success");
+            } catch(e) { showToast("結算發生錯誤: " + e.message, "error"); }
         };
         document.getElementById('btn-resolve-a').onclick = () => resolveBet('A');
         document.getElementById('btn-resolve-b').onclick = () => resolveBet('B');
@@ -548,42 +458,37 @@
         document.getElementById('btn-bind').onclick = async () => {
             const id = document.getElementById('input-roblox').value.trim();
             if(!id) return;
-            await setDoc(doc(db, COL_USERS, currentUser.uid), { uid: currentUser.uid, robloxId: id, coins: 0 }, { merge: true });
-            showToast("綁定成功", "success");
+            try {
+                await setDoc(doc(db, COL_USERS, currentUser.uid), { uid:currentUser.uid, robloxId:id, coins:0 }, { merge: true });
+            } catch(e) { showToast("設定失敗: " + e.message, "error"); }
         };
 
         function updateClientUIFromTimer() {
-            const tEl = document.getElementById('client-time-left');
-            const pEl = document.getElementById('time-progress');
-            if(tEl) tEl.textContent = `00:${timeLeft.toString().padStart(2, '0')}`;
-            if(pEl) pEl.style.width = (timeLeft/10)*100 + '%';
+            if(document.getElementById('time-progress')) document.getElementById('time-progress').style.width = (timeLeft/10)*100 + '%';
             if(timeLeft <= 0) document.querySelectorAll('.btn-bet').forEach(b => b.disabled = true);
         }
 
         function updateClientQuestionModal() {
-            if(!myData || !myData.personalQuestion) return document.getElementById('client-q-modal').classList.add('hidden');
-            const pq = myData.personalQuestion;
-            if(pq.answer) return document.getElementById('client-q-modal').classList.add('hidden');
-            
+            if(!myData?.personalQuestion || myData.personalQuestion.answer) return document.getElementById('client-q-modal').classList.add('hidden');
             window.hasHandledTimeout = false;
-            document.getElementById('client-q-text').textContent = pq.q;
+            document.getElementById('client-q-text').textContent = myData.personalQuestion.q;
             const container = document.getElementById('client-q-opts');
             container.innerHTML = '';
-            pq.opts.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = "w-full py-4 bg-white hover:bg-blue-50 text-gray-800 rounded-2xl font-bold border border-gray-100 shadow-sm btn-press transition-all";
-                btn.textContent = opt;
-                btn.onclick = async () => {
+            myData.personalQuestion.opts.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "w-full py-4 bg-white hover:bg-blue-50 text-gray-800 rounded-2xl font-bold border border-gray-100 btn-press transition-all";
+                b.textContent = opt;
+                b.onclick = async () => {
                     if(window.isSubmittingAnswer) return;
                     window.isSubmittingAnswer = true;
-                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                    b.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
                     try {
                         await setDoc(doc(db, COL_USERS, currentUser.uid), { personalQuestion: { answer: opt } }, { merge: true });
-                        showToast(`已送出: ${opt}`, "success");
-                    } catch(e) { showToast(`失敗: ${e.message}`, "error"); }
+                        showToast(`已選: ${opt}`, "success");
+                    } catch(e) { showToast(`選擇失敗: ${e.message}`, "error"); }
                     finally { window.isSubmittingAnswer = false; }
                 };
-                container.appendChild(btn);
+                container.appendChild(b);
             });
             document.getElementById('client-q-modal').classList.remove('hidden');
         }
@@ -595,59 +500,33 @@
             const myBet = betsData.find(b => b.uid === currentUser.uid);
 
             if(!gameState || gameState.status === 'idle') {
-                arena.innerHTML = `<div class="liquid-glass p-12 rounded-[2rem] text-center mt-6 text-gray-400 font-bold">等待主持發起活動...</div>`;
-                return;
-            }
-
-            if(gameState.status === 'betting') {
-                arena.innerHTML = `
-                    <div class="liquid-glass-heavy p-6 rounded-[2.5rem] mt-6">
-                        <h2 class="text-3xl font-black text-center mb-6">${gameState.title}</h2>
-                        <div class="w-full bg-gray-100 h-2 rounded-full mb-8 overflow-hidden">
-                            <div id="time-progress" class="bg-blue-500 h-full transition-all duration-1000"></div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button class="btn-bet py-8 rounded-[2rem] font-black text-xl transition-all ${myBet?.option==='A'?'bg-blue-500 text-white shadow-lg':'bg-white border border-gray-100'}" data-opt="A" ${myBet?'disabled':''}>${gameState.optionA}</button>
-                            <button class="btn-bet py-8 rounded-[2rem] font-black text-xl transition-all ${myBet?.option==='B'?'bg-purple-500 text-white shadow-lg':'bg-white border border-gray-100'}" data-opt="B" ${myBet?'disabled':''}>${gameState.optionB}</button>
-                        </div>
-                    </div>`;
+                arena.innerHTML = `<div class="liquid-glass p-12 rounded-[2rem] text-center mt-6 text-gray-400 font-bold">等待開始...</div>`;
+            } else if(gameState.status === 'betting') {
+                arena.innerHTML = `<div class="liquid-glass-heavy p-6 rounded-[2.5rem] mt-6"><h2 class="text-3xl font-black text-center mb-6">${gameState.title}</h2><div class="w-full bg-gray-100 h-2 rounded-full mb-8 overflow-hidden"><div id="time-progress" class="bg-blue-500 h-full transition-all duration-1000"></div></div><div class="grid grid-cols-2 gap-4"><button class="btn-bet py-8 rounded-[2rem] font-black text-xl transition-all ${myBet?.option==='A'?'bg-blue-500 text-white shadow-lg':'bg-white border border-gray-100'}" data-opt="A" ${myBet?'disabled':''}>${gameState.optionA}</button><button class="btn-bet py-8 rounded-[2rem] font-black text-xl transition-all ${myBet?.option==='B'?'bg-purple-500 text-white shadow-lg':'bg-white border border-gray-100'}" data-opt="B" ${myBet?'disabled':''}>${gameState.optionB}</button></div></div>`;
                 document.querySelectorAll('.btn-bet').forEach(b => b.onclick = async (e) => {
                     if(timeLeft <= 0) return;
-                    const opt = e.currentTarget.dataset.opt;
-                    await setDoc(doc(db, COL_BETS, currentUser.uid), { uid: currentUser.uid, option: opt, betTime: Date.now() });
-                    showToast("押注成功", "success");
+                    try {
+                        await setDoc(doc(db, COL_BETS, currentUser.uid), { uid:currentUser.uid, option: e.currentTarget.dataset.opt, betTime:Date.now() });
+                        showToast("押注成功", "success");
+                    } catch(err) { showToast("押注失敗: " + err.message, "error"); }
                 });
-            } else if(gameState.status === 'resolved') {
+            } else {
                 const win = myBet?.option === gameState.result;
-                arena.innerHTML = `
-                    <div class="liquid-glass p-10 rounded-[2.5rem] text-center mt-6">
-                        <p class="text-xs font-black text-blue-500 mb-2 uppercase tracking-widest">結果揭曉</p>
-                        <h2 class="text-4xl font-black mb-6">${gameState.result === 'A' ? gameState.optionA : gameState.optionB} 勝</h2>
-                        <div class="py-4 px-8 rounded-2xl inline-block font-black ${win?'bg-green-500 text-white':'bg-gray-100 text-gray-400'}">
-                            ${myBet ? (win ? '恭喜獲得 1 金幣！' : '下次加油') : '未參與'}
-                        </div>
-                    </div>`;
+                arena.innerHTML = `<div class="liquid-glass p-10 rounded-[2.5rem] text-center mt-6"><h2 class="text-4xl font-black mb-6">${gameState.result==='A'?gameState.optionA:gameState.optionB} 勝</h2><div class="py-4 px-8 rounded-2xl inline-block font-black ${win?'bg-green-500 text-white':'bg-gray-100 text-gray-400'}">${myBet?(win?'勝利！':'失敗'):'未參與'}</div></div>`;
             }
         }
 
-        // --- 通用 Modal 綁定 ---
-        let confirmCb = null;
-        function showConfirm(m, cb) { document.getElementById('confirm-message').textContent=m; document.getElementById('confirm-modal').classList.remove('hidden'); confirmCb=cb; }
+        let confirmCb = null, inputCb = null;
         document.getElementById('btn-confirm-ok').onclick = () => { document.getElementById('confirm-modal').classList.add('hidden'); confirmCb?.(); };
         document.getElementById('btn-confirm-cancel').onclick = () => document.getElementById('confirm-modal').classList.add('hidden');
-
-        let inputCb = null;
-        function showInputModal(t, p, cb) { 
-            document.getElementById('input-modal-title').textContent=t; 
-            document.getElementById('input-modal-value').placeholder=p;
-            document.getElementById('input-modal-value').value='';
-            document.getElementById('input-modal').classList.remove('hidden'); 
-            inputCb=cb; 
-        }
         document.getElementById('btn-input-ok').onclick = () => { document.getElementById('input-modal').classList.add('hidden'); inputCb?.(document.getElementById('input-modal-value').value); };
         document.getElementById('btn-input-cancel').onclick = () => document.getElementById('input-modal').classList.add('hidden');
-
+        function showInputModal(t, p, cb) { 
+            document.getElementById('input-modal-title').textContent=t; document.getElementById('input-modal-value').placeholder=p;
+            document.getElementById('input-modal').classList.remove('hidden'); inputCb=cb; 
+        }
     </script>
 </body>
 </html>
+
 
