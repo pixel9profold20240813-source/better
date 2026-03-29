@@ -2,346 +2,281 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>實時對決 | Liquid Minimal</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>實時押注系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { 
-                        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] 
-                    },
-                    colors: {
-                        liquid: {
-                            text: '#1d1d1f',
-                            gray: '#86868b',
-                            blue: '#0071e3',
-                            blueHover: '#0077ED',
-                            bg: '#f5f5f7'
-                        }
-                    },
-                    animation: {
-                        'liquid-morph': 'morph 8s ease-in-out infinite',
-                        'blob': 'blob 15s infinite alternate',
-                        'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'scale-in': 'scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
-                    },
-                    keyframes: {
-                        morph: {
-                            '0%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' },
-                            '50%': { borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%' },
-                            '100%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }
-                        },
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '100%': { transform: 'translate(40px, -40px) scale(1.1)' }
-                        },
-                        fadeIn: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-                        scaleIn: { 
-                            '0%': { opacity: 0, transform: 'scale(0.85) translateY(10px)' }, 
-                            '100%': { opacity: 1, transform: 'scale(1) translateY(0)' } 
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body { 
-            background-color: #f4f6f9;
-            color: #1d1d1f;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        
+        :root {
+            --liquid-bg: #f0f4f8;
+            --liquid-white: rgba(255, 255, 255, 0.7);
+            --liquid-blue: #3b82f6;
+            --liquid-text: #1e293b;
+            --liquid-gray: #64748b;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            color: var(--liquid-text);
+            min-height: 100vh;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
         }
-        
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* 核心：液態毛玻璃效果 */
         .liquid-glass {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
-            backdrop-filter: saturate(180%) blur(24px);
-            -webkit-backdrop-filter: saturate(180%) blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-top: 1px solid rgba(255, 255, 255, 0.9);
-            border-left: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+            background: var(--liquid-white);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
         }
-        
+
         .liquid-glass-heavy {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
-            backdrop-filter: saturate(200%) blur(30px);
-            -webkit-backdrop-filter: saturate(200%) blur(30px);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.8);
-            border-top: 1px solid rgba(255, 255, 255, 1);
-            border-left: 1px solid rgba(255, 255, 255, 1);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
 
-        /* 簡約輸入框 */
-        .liquid-input {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        .liquid-input:focus {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: #0071e3;
-            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
-            outline: none;
+        .btn-press:active { transform: scale(0.96); }
+        
+        @keyframes liquid-morph {
+            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
         }
 
-        /* 按鈕縮放回饋 */
-        .btn-press { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease; }
-        .btn-press:active:not(:disabled) { transform: scale(0.96); }
+        .animate-liquid-morph { animation: liquid-morph 8s ease-in-out infinite; }
 
-        /* Toast 動畫 */
-        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .toast-animate { animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .toast-animate {
+            animation: slideInUp 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 隱藏捲軸但保持滾動 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="min-h-screen relative font-sans">
+<body class="p-4 sm:p-6">
 
-    <!-- 動態液態背景 -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-gradient-to-tr from-pink-300/50 to-purple-300/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 12s;"></div>
-        <div class="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-gradient-to-bl from-blue-300/50 to-cyan-200/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 15s; animation-delay: -5s;"></div>
-        <div class="absolute bottom-[-10%] left-[20%] w-[60%] h-[50%] bg-gradient-to-t from-yellow-200/50 to-pink-200/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 18s; animation-delay: -2s;"></div>
-    </div>
-
-    <!-- 浮島式 Navbar -->
-    <header id="navbar" class="hidden fixed top-4 right-4 sm:top-6 sm:right-6 z-40 liquid-glass px-4 py-2 sm:px-5 sm:py-2.5 rounded-full flex items-center gap-4 animate-fade-in transition-all">
-        <div class="flex items-center gap-2">
-            <i class="fas fa-droplet text-liquid-blue text-lg"></i>
-            <h1 id="nav-title" class="text-sm font-semibold tracking-wide hidden sm:block">實時對決</h1>
-        </div>
-        <div class="w-px h-4 bg-gray-300 hidden sm:block"></div>
+    <!--導覽列-->
+    <nav id="navbar" class="hidden fixed top-4 left-4 right-4 z-50 flex justify-between items-center px-5 py-3 liquid-glass rounded-2xl">
         <div class="flex items-center gap-3">
-            <div id="nav-email" class="text-xs font-medium text-liquid-gray hidden md:block max-w-[120px] truncate"></div>
-            <button id="btn-logout" class="bg-gray-100 hover:bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors btn-press" title="登出">
-                <i class="fas fa-sign-out-alt text-sm"></i>
-            </button>
+            <div class="w-8 h-8 bg-liquid-blue rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                <i class="fas fa-droplet text-sm"></i>
+            </div>
+            <span id="nav-title" class="font-black text-gray-800 tracking-tight">玩家中心</span>
         </div>
-    </header>
+        <div class="flex items-center gap-4">
+            <span id="nav-email" class="hidden sm:block text-xs font-bold text-liquid-gray bg-white/50 px-3 py-1.5 rounded-full border border-white"></span>
+            <button id="btn-logout" class="text-gray-400 hover:text-red-500 transition-colors p-2"><i class="fas fa-power-off"></i></button>
+        </div>
+    </nav>
 
-    <main class="max-w-5xl mx-auto p-5 sm:p-8 relative z-10 pt-24 pb-20">
+    <main class="max-w-4xl mx-auto pt-20 pb-10">
         
-        <!-- 1. Loading View -->
-        <div id="view-loading" class="flex flex-col items-center justify-center min-h-[70vh] animate-fade-in">
-            <div class="w-12 h-12 relative mb-6">
-                <div class="absolute inset-0 border-[3px] border-gray-200 rounded-full"></div>
-                <div class="absolute inset-0 border-[3px] border-transparent border-t-liquid-blue rounded-full animate-spin"></div>
-            </div>
-            <p id="loading-text" class="text-sm font-medium text-liquid-gray tracking-wide">載入中...</p>
+        <!-- 載入中 -->
+        <div id="view-loading" class="flex flex-col items-center justify-center py-20">
+            <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+            <p class="mt-4 font-bold text-liquid-gray animate-pulse">連線中...</p>
         </div>
 
-        <!-- 2. Login View -->
-        <div id="view-login" class="hidden flex flex-col items-center justify-center min-h-[70vh]">
-            <div class="liquid-glass-heavy p-10 sm:p-14 rounded-[2rem] max-w-md w-full text-center animate-scale-in">
-                <div class="mb-8">
-                    <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/20 animate-liquid-morph">
-                        <i class="fas fa-droplet text-3xl text-white"></i>
-                    </div>
-                    <h1 class="text-3xl font-bold tracking-tight mb-2">登入</h1>
+        <!-- 登入頁 -->
+        <div id="view-login" class="hidden flex flex-col items-center justify-center py-12">
+            <div class="liquid-glass p-10 rounded-[2.5rem] text-center max-w-sm w-full">
+                <div class="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-100 animate-liquid-morph">
+                    <i class="fas fa-bolt text-3xl text-liquid-blue"></i>
                 </div>
-                
-                <button id="btn-login" class="w-full bg-white/80 backdrop-blur-md border border-gray-200 text-black font-semibold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-3 shadow-sm hover:bg-white transition-all btn-press mb-4">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/><path fill="none" d="M1 1h22v22H1z"/></svg>
-                    Google 登入
+                <h1 class="text-3xl font-black text-gray-800 mb-2">實時押注</h1>
+                <p class="text-liquid-gray text-sm mb-8 font-medium">使用 Google 帳號快速加入對決</p>
+                <button id="btn-login" class="w-full py-4 bg-liquid-blue hover:bg-blue-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-3 btn-press">
+                    <i class="fab fa-google text-lg"></i> 登入系統
                 </button>
             </div>
         </div>
 
-        <!-- 3. Bind Roblox View -->
-        <div id="view-bind" class="hidden max-w-md mx-auto mt-12 animate-scale-in">
-            <div class="liquid-glass-heavy p-10 rounded-[2rem] text-center">
-                <div class="w-16 h-16 bg-white/50 border border-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                    <i class="fas fa-user-tag text-2xl text-liquid-blue"></i>
-                </div>
-                <h2 class="text-2xl font-bold mb-8 tracking-tight">綁定帳號</h2>
-                
-                <div id="bind-error" class="hidden bg-red-50/80 text-red-500 px-4 py-3 rounded-xl mb-6 text-sm font-medium border border-red-100 text-left">
-                    <i class="fas fa-exclamation-circle mr-1"></i> <span id="bind-error-text"></span>
-                </div>
-                
-                <div class="mb-8 text-left">
-                    <input type="text" id="input-roblox" placeholder="Roblox ID" class="w-full liquid-input rounded-2xl px-5 py-4 font-medium text-lg placeholder-gray-400" />
-                </div>
-                
-                <button id="btn-bind" class="w-full bg-liquid-text hover:bg-black text-white font-semibold py-4 rounded-2xl transition-colors btn-press text-lg shadow-lg">
-                    確認
-                </button>
-            </div>
-        </div>
-
-        <!-- 4. Host Dashboard View -->
-        <div id="view-host" class="hidden space-y-8 animate-fade-in">
-            <div class="text-left mb-6">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-800">控制中心</h2>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- 發起對決卡片 -->
-                <div class="liquid-glass rounded-[2rem] p-8">
-                    <h3 class="text-lg font-semibold mb-6 flex items-center gap-2"><i class="fas fa-bolt text-yellow-500"></i> 發起對決</h3>
-                    <div class="space-y-5">
-                        <div>
-                            <input type="text" id="host-title" placeholder="輸入標題" class="w-full liquid-input rounded-xl px-4 py-3.5 font-medium" />
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="host-optA" placeholder="選項 A" class="w-full liquid-input rounded-xl px-4 py-3.5 font-medium text-center" />
-                            <input type="text" id="host-optB" placeholder="選項 B" class="w-full liquid-input rounded-xl px-4 py-3.5 font-medium text-center" />
-                        </div>
-                        <button id="btn-start-bet" class="w-full bg-liquid-blue hover:bg-liquid-blueHover text-white font-semibold py-3.5 rounded-xl transition-colors btn-press mt-2 shadow-md shadow-blue-500/30">
-                            發佈 (10秒)
-                        </button>
+        <!-- 綁定 ID 頁 -->
+        <div id="view-bind" class="hidden">
+            <div class="liquid-glass p-8 rounded-[2rem] max-w-md mx-auto">
+                <h2 class="text-2xl font-black text-gray-800 mb-2">身分設定</h2>
+                <p class="text-liquid-gray text-sm mb-6">請輸入您的遊戲 ID 以利金幣統計</p>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="input-roblox" placeholder="輸入遊戲 ID" class="w-full pl-11 pr-4 py-4 bg-white/50 border border-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all font-bold">
                     </div>
-                </div>
-
-                <!-- 當前狀態卡片 -->
-                <div class="liquid-glass rounded-[2rem] p-8 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-6 flex items-center gap-2"><i class="fas fa-satellite-dish text-purple-500"></i> 狀態</h3>
-                        <div id="host-state-content" class="min-h-[120px]">
-                            <!-- Injected by JS -->
-                        </div>
+                    <div id="bind-error" class="hidden text-red-500 text-xs font-bold px-2 flex items-center gap-2">
+                        <i class="fas fa-info-circle"></i> <span id="bind-error-text"></span>
                     </div>
-                    <div id="host-resolve-panel" class="hidden mt-6 pt-6 border-t border-white/40">
-                        <p class="text-xs font-semibold text-liquid-gray mb-4 text-center tracking-widest uppercase">結算</p>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button id="btn-resolve-a" class="bg-white/60 hover:bg-white text-black py-3 rounded-xl font-semibold transition-all shadow-sm btn-press border border-white">
-                                A 勝
-                            </button>
-                            <button id="btn-resolve-b" class="bg-white/60 hover:bg-white text-black py-3 rounded-xl font-semibold transition-all shadow-sm btn-press border border-white">
-                                B 勝
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 玩家列表 -->
-            <div class="liquid-glass rounded-[2rem] p-8 overflow-hidden">
-                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2"><i class="fas fa-users text-green-500"></i> 玩家</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-gray-300/30 text-liquid-gray text-xs uppercase tracking-wider">
-                                <th class="py-3 px-2 font-medium">玩家</th>
-                                <th class="py-3 px-2 font-medium">金幣</th>
-                                <th class="py-3 px-2 font-medium">大廳狀態</th>
-                                <th class="py-3 px-2 font-medium">個人問答</th>
-                                <th class="py-3 px-2 font-medium text-right">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="host-table-body" class="divide-y divide-gray-300/20">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
+                    <button id="btn-bind" class="w-full py-4 bg-gray-800 hover:bg-black text-white rounded-2xl font-bold transition-all shadow-lg shadow-gray-200 btn-press">
+                        完成設定
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- 5. Client Dashboard View -->
-        <div id="view-client" class="hidden max-w-2xl mx-auto space-y-6 animate-fade-in">
-            <!-- 頂部資訊卡 -->
-            <div class="liquid-glass-heavy rounded-3xl p-6 flex items-center justify-between shadow-lg shadow-gray-200/50">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-white/60 border border-white rounded-full flex items-center justify-center text-xl text-gray-700 shadow-sm relative">
-                        <i class="fas fa-ghost"></i>
-                        <!-- 排名 Badge -->
-                        <div id="client-rank-badge" class="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm border border-white whitespace-nowrap">
-                            #1
+        <!-- 主持端介面 -->
+        <div id="view-host" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- 控制面板 -->
+                <div class="md:col-span-5 space-y-6">
+                    <div class="liquid-glass p-6 rounded-[2rem] shadow-sm">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fas fa-plus-circle text-liquid-blue"></i>
+                            <h3 class="font-black text-gray-800">發起新對決</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <input type="text" id="host-title" placeholder="對決主題 (如: 下一場誰贏?)" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" id="host-optA" placeholder="選項 A" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
+                                <input type="text" id="host-optB" placeholder="選項 B" class="w-full px-4 py-3 bg-white/50 border border-white rounded-xl focus:outline-none text-sm font-bold">
+                            </div>
+                            <button id="btn-start-bet" class="w-full py-4 bg-liquid-blue text-white rounded-2xl font-black shadow-lg shadow-blue-100 btn-press mt-2">
+                                發送押注
+                            </button>
                         </div>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-liquid-gray font-bold uppercase tracking-widest mb-0.5">Player</p>
-                        <p id="client-roblox-id" class="text-lg font-bold tracking-tight text-gray-800">-</p>
+
+                    <div id="host-resolve-panel" class="hidden liquid-glass p-6 rounded-[2rem] shadow-sm border-2 border-white">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fas fa-trophy text-yellow-500"></i>
+                            <h3 class="font-black text-gray-800">結算當前局</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button id="btn-resolve-a" class="py-4 bg-white/80 hover:bg-white text-blue-600 rounded-2xl font-black border border-blue-100 shadow-sm btn-press">A 勝</button>
+                            <button id="btn-resolve-b" class="py-4 bg-white/80 hover:bg-white text-purple-600 rounded-2xl font-black border border-purple-100 shadow-sm btn-press">B 勝</button>
+                        </div>
                     </div>
                 </div>
-                <div class="text-right">
-                    <p class="text-[10px] text-liquid-gray font-bold uppercase tracking-widest mb-0.5">Coins</p>
-                    <div class="flex items-center gap-1.5 justify-end">
-                        <span id="client-coins" class="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-orange-400">0</span>
-                        <i class="fas fa-coins text-yellow-500"></i>
+
+                <!-- 玩家狀態 -->
+                <div class="md:col-span-7">
+                    <div class="liquid-glass p-6 rounded-[2.5rem] h-full shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-4 px-2">
+                            <h3 class="font-black text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-users text-gray-400"></i> 玩家排行與狀態
+                            </h3>
+                        </div>
+                        <div id="host-state-content" class="mb-4"></div>
+                        <div class="overflow-x-auto hide-scrollbar flex-1">
+                            <table class="w-full text-left">
+                                <thead class="text-[10px] font-black text-liquid-gray uppercase tracking-widest border-b border-gray-100">
+                                    <tr>
+                                        <th class="pb-3 px-2">玩家 ID</th>
+                                        <th class="pb-3 px-2">金幣</th>
+                                        <th class="pb-3 px-2">目前押注</th>
+                                        <th class="pb-3 px-2">問答/動作</th>
+                                        <th class="pb-3 px-2 text-right">管理</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="host-table-body" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 玩家端介面 -->
+        <div id="view-client" class="hidden space-y-6">
+            <!-- 個人資訊卡 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
+                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">您的 ID</p>
+                    <p id="client-roblox-id" class="text-lg font-black text-gray-800 truncate">--</p>
+                </div>
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
+                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">持有金幣</p>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-coins text-yellow-500 text-sm"></i>
+                        <p id="client-coins" class="text-lg font-black text-gray-800">0</p>
+                    </div>
+                </div>
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
+                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">目前排名</p>
+                    <span id="client-rank-badge" class="inline-block px-3 py-0.5 bg-gray-800 text-white text-xs font-black rounded-lg">#--</span>
+                </div>
+                <div class="liquid-glass p-4 rounded-3xl shadow-sm border-t border-white">
+                    <p class="text-[10px] font-bold text-liquid-gray uppercase tracking-widest mb-1">連線狀態</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span class="text-xs font-bold text-green-600">優良</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 押注主區域 -->
-            <div id="client-arena-content" class="w-full">
-                <!-- Injected by JS -->
-            </div>
+            <!-- 競技場區塊 -->
+            <div id="client-arena-content"></div>
         </div>
     </main>
 
-    <!-- Global Toast Container -->
-    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[70] flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4"></div>
+    <!-- 個人問答 Modal (用戶端) -->
+    <div id="client-q-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-blue-900/10 backdrop-blur-md">
+        <div class="liquid-glass-heavy w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-t-4 border-liquid-blue animate-scale-in">
+            <div class="flex justify-between items-center mb-6">
+                <span class="px-3 py-1 bg-blue-50 text-liquid-blue text-[10px] font-black rounded-full border border-blue-100">主持人提問</span>
+                <span id="client-q-time" class="text-xs font-black text-orange-500 bg-orange-50 px-2 py-1 rounded-lg border border-orange-100">30s</span>
+            </div>
+            <h3 id="client-q-text" class="text-2xl font-black text-gray-800 mb-8 leading-tight">--</h3>
+            <div id="client-q-opts" class="space-y-3"></div>
+        </div>
+    </div>
 
-    <!-- Modals (with scale-in animations) -->
-    
-    <!-- Confirm Modal -->
-    <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
-        <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[300px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
-            <h3 class="text-lg font-bold mb-2">確認</h3>
-            <p id="confirm-message" class="text-sm text-gray-600 mb-6 leading-relaxed"></p>
-            <div class="flex flex-col gap-3">
-                <button id="btn-confirm-ok" class="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors btn-press shadow-md shadow-red-500/20">確認</button>
-                <button id="btn-confirm-cancel" class="w-full py-3.5 bg-white/60 hover:bg-white text-gray-700 rounded-xl font-semibold border border-white transition-colors btn-press">取消</button>
+    <!-- 主持人發問 Modal -->
+    <div id="host-q-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/20 backdrop-blur-sm">
+        <div class="liquid-glass-heavy w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
+            <h3 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
+                <i class="fas fa-paper-plane text-purple-500"></i> 發送個人問答
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">問題內容</label>
+                    <input type="text" id="host-q-input" class="w-full px-4 py-3 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none font-bold mt-1">
+                </div>
+                <div class="grid grid-cols-1 gap-2">
+                    <input type="text" id="host-q-opt1" placeholder="選項 1" class="w-full px-4 py-2 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none text-sm">
+                    <input type="text" id="host-q-opt2" placeholder="選項 2" class="w-full px-4 py-2 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none text-sm">
+                    <input type="text" id="host-q-opt3" placeholder="選項 3" class="w-full px-4 py-2 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none text-sm">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button id="btn-host-q-cancel" class="flex-1 py-3 text-gray-500 font-bold">取消</button>
+                    <button id="btn-host-q-send" class="flex-2 px-8 py-3 bg-purple-500 text-white rounded-xl font-bold shadow-lg shadow-purple-100 btn-press">發送</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Input Modal -->
-    <div id="input-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
-        <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[300px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
-            <h3 id="input-modal-title" class="text-lg font-bold mb-4"></h3>
-            <input type="number" id="input-modal-value" class="w-full liquid-input rounded-xl px-4 py-3 mb-6 font-medium text-center" />
-            <div class="flex flex-col gap-3">
-                <button id="btn-input-ok" class="w-full py-3.5 bg-liquid-blue hover:bg-liquid-blueHover text-white rounded-xl font-semibold transition-colors btn-press shadow-md shadow-blue-500/20">確認</button>
-                <button id="btn-input-cancel" class="w-full py-3.5 bg-white/60 hover:bg-white text-gray-700 rounded-xl font-semibold border border-white transition-colors btn-press">取消</button>
+    <!-- 通知與通用 Modal -->
+    <div id="toast-container" class="fixed bottom-6 left-0 right-0 z-[200] flex flex-col items-center gap-3 pointer-events-none"></div>
+
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/10 backdrop-blur-sm">
+        <div class="liquid-glass-heavy w-full max-w-xs rounded-[2rem] p-6 text-center shadow-2xl">
+            <p id="confirm-message" class="text-gray-800 font-bold mb-6"></p>
+            <div class="flex gap-3">
+                <button id="btn-confirm-cancel" class="flex-1 py-3 text-gray-400 font-bold text-sm">取消</button>
+                <button id="btn-confirm-ok" class="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold text-sm btn-press">確認</button>
             </div>
         </div>
     </div>
 
-    <!-- Host: Send Question Modal -->
-    <div id="host-q-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
-        <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[320px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
-            <h3 id="host-q-title" class="text-lg font-bold mb-4 flex justify-center items-center gap-2"><i class="fas fa-paper-plane text-purple-500"></i> 發送問題</h3>
-            <input type="text" id="host-q-input" value="要哪個？" class="w-full liquid-input rounded-xl px-4 py-3 mb-3 font-medium text-center shadow-inner" placeholder="問題內容" />
-            <input type="text" id="host-q-opt1" value="皮膚箱1" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-2 font-medium text-sm text-center" />
-            <input type="text" id="host-q-opt2" value="皮膚箱2" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-2 font-medium text-sm text-center" />
-            <input type="text" id="host-q-opt3" value="皮膚箱3" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-6 font-medium text-sm text-center" />
-            <div class="flex flex-col gap-3">
-                <button id="btn-host-q-send" class="w-full py-3.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-colors btn-press shadow-md shadow-purple-500/30">發送 (30秒)</button>
-                <button id="btn-host-q-cancel" class="w-full py-3.5 bg-white/60 hover:bg-white text-gray-700 rounded-xl font-semibold border border-white transition-colors btn-press">取消</button>
+    <div id="input-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/10 backdrop-blur-sm">
+        <div class="liquid-glass-heavy w-full max-w-xs rounded-[2rem] p-6 shadow-2xl">
+            <h4 id="input-modal-title" class="text-gray-800 font-black mb-4 px-1"></h4>
+            <input type="text" id="input-modal-value" class="w-full px-4 py-3 bg-gray-100/50 border border-gray-100 rounded-xl focus:outline-none font-bold mb-6">
+            <div class="flex gap-3">
+                <button id="btn-input-cancel" class="flex-1 py-3 text-gray-400 font-bold text-sm">取消</button>
+                <button id="btn-input-ok" class="flex-1 py-3 bg-liquid-blue text-white rounded-xl font-bold text-sm btn-press">送出</button>
             </div>
         </div>
     </div>
 
-    <!-- Client: Answer Question Modal -->
-    <div id="client-q-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-md transition-opacity"></div>
-        <div class="liquid-glass-heavy rounded-[2rem] p-8 max-w-[320px] w-full shadow-2xl relative z-10 animate-scale-in text-center border-t border-white">
-            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30 animate-liquid-morph">
-                <i class="fas fa-question text-3xl text-white"></i>
-            </div>
-            <h3 id="client-q-text" class="text-2xl font-black mb-2 tracking-tight text-gray-800">要哪個？</h3>
-            <p class="text-xs text-liquid-gray font-bold uppercase tracking-widest mb-6 bg-white/50 inline-block px-3 py-1 rounded-full">剩餘時間: <span id="client-q-time" class="text-red-500 text-sm">30s</span></p>
-            <div class="flex flex-col gap-3" id="client-q-opts">
-                <!-- Buttons injected here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase Logic -->
+    <!-- Firebase 邏輯核心 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -371,87 +306,39 @@
         let unsubUsers, unsubState, unsubBets;
         let targetQuestionUid = null;
         
-        // 全局鎖，防止客戶端連點及樂觀更新導致的閃爍
+        // 防連點與超時鎖定
         window.isSubmittingAnswer = false;
+        window.hasHandledTimeout = false; 
 
-        // --- Toast & Modals ---
+        // --- UI 工具 ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `liquid-glass-heavy px-5 py-3 rounded-full flex items-center gap-3 toast-animate pointer-events-auto font-medium text-sm shadow-xl mx-auto w-max`;
+            toast.className = `liquid-glass-heavy px-5 py-3 rounded-full flex items-center gap-3 toast-animate pointer-events-auto font-medium text-sm shadow-xl mx-auto w-max max-w-sm`;
             
             let icon = '';
             if(type === 'success') icon = '<i class="fas fa-check-circle text-green-500 text-lg"></i>';
             else if(type === 'error') icon = '<i class="fas fa-exclamation-circle text-red-500 text-lg"></i>';
-            else if(type === 'warning') icon = '<i class="fas fa-exclamation-triangle text-yellow-500 text-lg"></i>';
             else icon = '<i class="fas fa-info-circle text-liquid-blue text-lg"></i>';
 
-            toast.innerHTML = `${icon} <span class="text-gray-800 tracking-wide">${message}</span>`;
-            
+            toast.innerHTML = `${icon} <span class="text-gray-800 tracking-wide break-words">${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateY(-10px)';
                 toast.style.transition = 'all 0.4s ease';
                 setTimeout(() => toast.remove(), 400);
-            }, 2500);
+            }, 3500);
         }
-
-        function openModalWithAnim(id) {
-            const el = document.getElementById(id);
-            el.classList.remove('hidden');
-        }
-
-        let confirmCallback = null;
-        function showConfirm(message, callback) {
-            document.getElementById('confirm-message').textContent = message;
-            openModalWithAnim('confirm-modal');
-            confirmCallback = callback;
-        }
-
-        document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            confirmCallback = null;
-        });
-        document.getElementById('btn-confirm-ok').addEventListener('click', () => {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            if (confirmCallback) confirmCallback();
-            confirmCallback = null;
-        });
-
-        // Input Modal Logic
-        let inputCallback = null;
-        function showInputModal(title, placeholder, callback) {
-            document.getElementById('input-modal-title').textContent = title;
-            const inputEl = document.getElementById('input-modal-value');
-            inputEl.placeholder = placeholder;
-            inputEl.value = '';
-            openModalWithAnim('input-modal');
-            inputEl.focus();
-            inputCallback = callback;
-        }
-
-        document.getElementById('btn-input-cancel').addEventListener('click', () => {
-            document.getElementById('input-modal').classList.add('hidden');
-            inputCallback = null;
-        });
-        document.getElementById('btn-input-ok').addEventListener('click', () => {
-            const val = document.getElementById('input-modal-value').value;
-            document.getElementById('input-modal').classList.add('hidden');
-            if (inputCallback) inputCallback(val);
-            inputCallback = null;
-        });
 
         function showView(viewId) {
             ['view-loading', 'view-login', 'view-bind', 'view-host', 'view-client'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            if (viewId) openModalWithAnim(viewId);
+            if (viewId) document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // --- Auth 邏輯 ---
-        showView('view-loading'); 
-
+        // --- Auth ---
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (!user) {
@@ -461,43 +348,39 @@
             } else {
                 document.getElementById('navbar').classList.remove('hidden');
                 document.getElementById('nav-email').textContent = user.email;
-                if (user.email === ADMIN_EMAIL) {
-                    document.getElementById('nav-title').textContent = '控制中心';
-                }
+                if (user.email === ADMIN_EMAIL) document.getElementById('nav-title').textContent = '控制中心';
                 setupRealtimeListeners();
             }
         });
 
         document.getElementById('btn-login').addEventListener('click', () => {
-            showView('view-loading');
             const provider = new GoogleAuthProvider();
             signInWithPopup(auth, provider).catch((error) => {
-                showView('view-login');
-                if(error.code !== 'auth/popup-closed-by-user') showToast("登入發生錯誤", "error");
+                if(error.code !== 'auth/popup-closed-by-user') showToast("登入錯誤", "error");
             });
         });
 
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-        // --- 資料庫與全局計時器 ---
+        // --- 核心監聽 ---
         function setupRealtimeListeners() {
             unsubUsers = onSnapshot(collection(db, COL_USERS), (snap) => {
                 usersData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 myData = usersData.find(u => u.uid === currentUser.uid);
                 renderLogic();
                 updateClientQuestionModal();
-            });
+            }, (err) => showToast(`同步失敗(U): ${err.message}`, "error"));
 
             unsubState = onSnapshot(collection(db, COL_STATE), (snap) => {
                 const current = snap.docs.find(d => d.id === 'current');
                 gameState = current ? current.data() : null;
                 renderLogic();
-            });
+            }, (err) => showToast(`同步失敗(S): ${err.message}`, "error"));
 
             unsubBets = onSnapshot(collection(db, COL_BETS), (snap) => {
                 betsData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderLogic();
-            });
+            }, (err) => showToast(`同步失敗(B): ${err.message}`, "error"));
         }
 
         function clearListeners() {
@@ -506,11 +389,9 @@
             if (unsubBets) unsubBets();
         }
 
-        // 全局 1 秒 Ticker 處理所有倒數
+        // --- 計時器邏輯 ---
         setInterval(() => {
             const now = Date.now();
-            
-            // 1. 處理大廳全域押注倒數
             if (gameState && gameState.status === 'betting') {
                 const elapsed = Math.floor((now - gameState.startTime) / 1000);
                 timeLeft = Math.max(0, 10 - elapsed);
@@ -518,41 +399,20 @@
                 if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
             }
 
-            // 2. 處理玩家個人的問答倒數
             if (currentUser && currentUser.email !== ADMIN_EMAIL && myData?.personalQuestion && !myData.personalQuestion.answer) {
                 const qElapsed = Math.floor((now - myData.personalQuestion.startTime) / 1000);
                 const qLeft = Math.max(0, 30 - qElapsed);
                 const qTimerEl = document.getElementById('client-q-time');
-                if (qLeft > 0) {
-                    if (qTimerEl) qTimerEl.textContent = `${qLeft}s`;
-                } else {
-                    // 超時提交機制：防止連發與回滾
-                    if (!window.isSubmittingAnswer) {
-                        window.isSubmittingAnswer = true;
-                        document.getElementById('client-q-modal').classList.add('hidden');
-                        
-                        // 構建完整物件避免 Dot Notation 潛在報錯
-                        const updatedPQ = { ...myData.personalQuestion, answer: '超時' };
-                        updateDoc(doc(db, COL_USERS, currentUser.uid), { personalQuestion: updatedPQ })
-                            .catch(err => console.error("Timeout submit error:", err))
-                            .finally(() => { window.isSubmittingAnswer = false; });
-                    }
+                if (qTimerEl) qTimerEl.textContent = `${qLeft}s`;
+                
+                if (qLeft <= 0 && !window.isSubmittingAnswer && !window.hasHandledTimeout) {
+                    window.isSubmittingAnswer = true;
+                    window.hasHandledTimeout = true;
+                    document.getElementById('client-q-modal').classList.add('hidden');
+                    setDoc(doc(db, COL_USERS, currentUser.uid), { personalQuestion: { answer: '超時' } }, { merge: true })
+                    .catch(e => showToast(`超時寫入失敗: ${e.message}`, "error"))
+                    .finally(() => window.isSubmittingAnswer = false);
                 }
-            }
-
-            // 3. 處理主持端查看的問答倒數狀態
-            if (currentUser?.email === ADMIN_EMAIL) {
-                usersData.forEach(u => {
-                    if (u.personalQuestion && !u.personalQuestion.answer) {
-                        const qElapsed = Math.floor((now - u.personalQuestion.startTime) / 1000);
-                        const qLeft = Math.max(0, 30 - qElapsed);
-                        const el = document.getElementById(`q-status-${u.uid}`);
-                        if (el) {
-                            if (qLeft > 0) el.textContent = `答題中 (${qLeft}s)`;
-                            else el.textContent = `超時中...`;
-                        }
-                    }
-                });
             }
         }, 1000);
 
@@ -562,435 +422,232 @@
                 showView('view-host');
                 renderHost();
             } else {
-                if (!myData) {
-                    showView('view-bind');
-                } else {
-                    showView('view-client');
-                    renderClient();
-                }
+                if (!myData) showView('view-bind');
+                else { showView('view-client'); renderClient(); }
             }
         }
 
-        // --- 主持端介面 ---
+        // --- 主持人端 ---
         function renderHost() {
             const stateDiv = document.getElementById('host-state-content');
             const resolvePanel = document.getElementById('host-resolve-panel');
             
             if (!gameState) {
-                stateDiv.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 py-6"><p class="text-sm font-medium">尚未發起</p></div>`;
+                stateDiv.innerHTML = `<p class="text-center text-gray-400 py-4 text-xs font-bold">目前無活動</p>`;
                 resolvePanel.classList.add('hidden');
             } else {
-                let statusHtml = '';
-                if (gameState.status === 'betting') {
-                    statusHtml = `<span class="text-sm font-bold text-liquid-blue flex items-center gap-1.5"><i class="fas fa-circle-notch fa-spin"></i> 押注中 (${timeLeft}s)</span>`;
-                    resolvePanel.classList.remove('hidden');
-                } else {
-                    const winOpt = gameState.result === 'A' ? gameState.optionA : gameState.optionB;
-                    statusHtml = `<span class="text-sm font-bold text-gray-500 flex items-center gap-1.5"><i class="fas fa-flag-checkered"></i> 結算 (${winOpt} 勝)</span>`;
-                    resolvePanel.classList.add('hidden');
-                }
-
+                const isBetting = gameState.status === 'betting';
                 stateDiv.innerHTML = `
-                    <div class="bg-white/40 border border-white rounded-2xl p-5 mb-4 text-center shadow-sm">
-                        <h4 class="text-xl font-bold text-gray-800 tracking-tight mb-3">${gameState.title}</h4>
-                        <div class="flex justify-center items-center gap-3 text-sm font-bold">
-                            <span class="px-4 py-2 bg-white/70 rounded-xl text-gray-700 w-1/2 truncate shadow-sm border border-white">${gameState.optionA}</span>
-                            <span class="text-gray-400 text-xs">VS</span>
-                            <span class="px-4 py-2 bg-white/70 rounded-xl text-gray-700 w-1/2 truncate shadow-sm border border-white">${gameState.optionB}</span>
+                    <div class="bg-white/40 border border-white rounded-2xl p-4 mb-2 shadow-sm">
+                        <h4 class="font-black text-gray-800 text-center mb-2">${gameState.title}</h4>
+                        <div class="flex justify-between text-[11px] font-bold text-gray-500">
+                            <span>${isBetting ? '押注中' : '已結算'}</span>
+                            <span>${isBetting ? timeLeft + 's' : ''}</span>
                         </div>
-                    </div>
-                    <div class="flex items-center justify-between px-1">
-                        ${statusHtml}
-                        <span class="text-xs font-bold text-liquid-gray uppercase tracking-widest">${betsData.length} 參與</span>
-                    </div>
-                `;
+                    </div>`;
+                isBetting ? resolvePanel.classList.remove('hidden') : resolvePanel.classList.add('hidden');
             }
 
             const tbody = document.getElementById('host-table-body');
             tbody.innerHTML = '';
-            const sortedUsers = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
-            
-            if (sortedUsers.length === 0) {
-                tbody.innerHTML = `<tr><td colSpan="5" class="py-8 text-center text-liquid-gray text-sm">無玩家</td></tr>`;
-            } else {
-                sortedUsers.forEach((u, index) => {
-                    const userBet = betsData.find(b => b.uid === u.uid);
-                    // 大廳狀態
-                    let betHtml = `<span class="text-gray-400/80 text-xs font-medium border border-gray-300/50 px-2 py-1 rounded-md">閒置</span>`;
-                    if (userBet) betHtml = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-white/60 text-liquid-blue border border-blue-100 shadow-sm">選 ${userBet.option}</span>`;
-                    
-                    // 個人問答狀態
-                    let statusHtml = '';
-                    if (u.personalQuestion) {
-                        if (u.personalQuestion.answer) {
-                            let ansColor = u.personalQuestion.answer === '超時' ? 'text-red-500 border-red-200 bg-red-50/50' : 'text-green-600 border-green-200 bg-green-50/50';
-                            statusHtml = `
-                                <span class="px-2 py-1 rounded-md text-[10px] font-bold ${ansColor} border shadow-sm max-w-[70px] truncate" title="${u.personalQuestion.answer}">${u.personalQuestion.answer}</span>
-                                <button class="btn-clear-pq text-gray-400 hover:text-gray-600 p-0.5 btn-press" data-uid="${u.uid}" title="清除記錄"><i class="fas fa-times-circle"></i></button>
-                            `;
-                        } else {
-                            statusHtml = `<span id="q-status-${u.uid}" class="text-[10px] font-bold text-orange-500 bg-orange-50/50 border border-orange-200 px-2 py-1 rounded-md shadow-sm truncate max-w-[70px]">答題中...</span>`;
-                        }
+            usersData.sort((a,b) => (b.coins||0)-(a.coins||0)).forEach((u, i) => {
+                const userBet = betsData.find(b => b.uid === u.uid);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/30";
+                
+                let pqStatus = '';
+                if(u.personalQuestion) {
+                    pqStatus = u.personalQuestion.answer 
+                        ? `<span class="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded border border-green-100">${u.personalQuestion.answer}</span>`
+                        : `<span class="text-[10px] text-orange-500 animate-pulse">答題中...</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-2 font-bold text-sm">${u.robloxId}</td>
+                    <td class="py-3 px-2 font-black">${u.coins || 0}</td>
+                    <td class="py-3 px-2 text-xs font-bold text-liquid-blue">${userBet ? '選 ' + userBet.option : '-'}</td>
+                    <td class="py-3 px-2 flex items-center gap-1">
+                        <button class="btn-send-pq text-[10px] font-black bg-purple-50 text-purple-600 px-2 py-1 rounded border border-purple-100" data-uid="${u.uid}">發問</button>
+                        ${pqStatus}
+                    </td>
+                    <td class="py-3 px-2 text-right">
+                        <button class="btn-add-coins text-green-500 p-1" data-uid="${u.uid}"><i class="fas fa-plus-circle"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 綁定事件
+            document.querySelectorAll('.btn-send-pq').forEach(btn => btn.onclick = (e) => {
+                targetQuestionUid = e.target.dataset.uid;
+                document.getElementById('host-q-input').value = '你要哪一個？';
+                document.getElementById('host-q-opt1').value = '箱子 A';
+                document.getElementById('host-q-opt2').value = '箱子 B';
+                document.getElementById('host-q-opt3').value = '箱子 C';
+                document.getElementById('host-q-modal').classList.remove('hidden');
+            });
+
+            document.querySelectorAll('.btn-add-coins').forEach(btn => btn.onclick = (e) => {
+                const uid = e.currentTarget.dataset.uid;
+                const user = usersData.find(u => u.uid === uid);
+                showInputModal(`調整 ${user.robloxId} 金幣`, "輸入數量", async (val) => {
+                    const amt = parseInt(val);
+                    if(!isNaN(amt)) {
+                        await setDoc(doc(db, COL_USERS, uid), { coins: (user.coins || 0) + amt }, { merge: true });
+                        showToast("金幣已更新", "success");
                     }
-
-                    const pqHtml = `
-                        <div class="flex items-center gap-1.5">
-                            <button class="btn-send-pq text-purple-500 hover:bg-white/60 px-2 py-1 rounded-md text-xs font-bold border border-purple-200 transition-all shadow-sm flex items-center gap-1 btn-press whitespace-nowrap shrink-0" data-uid="${u.uid}">
-                                <i class="fas fa-paper-plane"></i>發問
-                            </button>
-                            ${statusHtml}
-                        </div>
-                    `;
-
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-white/40 transition-colors";
-                    tr.innerHTML = `
-                        <td class="py-3 px-2 font-bold text-sm text-gray-700 flex items-center gap-2">
-                            ${index === 0 ? '<i class="fas fa-crown text-yellow-500 text-xs drop-shadow-sm"></i>' : ''}
-                            ${u.robloxId}
-                        </td>
-                        <td class="py-3 px-2 text-sm font-black text-gray-800">${u.coins || 0}</td>
-                        <td class="py-3 px-2">${betHtml}</td>
-                        <td class="py-3 px-2">${pqHtml}</td>
-                        <td class="py-3 px-2 text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button class="btn-add-coins text-green-500 hover:text-green-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="調整金幣"><i class="fas fa-plus-circle text-sm"></i></button>
-                                <button class="btn-reset-coins text-red-400 hover:text-red-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="歸零"><i class="fas fa-trash-can text-sm"></i></button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
                 });
-
-                // 綁定各按鈕事件
-                document.querySelectorAll('.btn-reset-coins').forEach(btn => btn.addEventListener('click', (e) => {
-                    const uid = e.currentTarget.getAttribute('data-uid');
-                    const u = usersData.find(x => x.uid === uid);
-                    if(u) showConfirm(`清空 ${u.robloxId} 的金幣？`, async () => {
-                        await updateDoc(doc(db, COL_USERS, uid), { coins: 0 });
-                        showToast("已清空", "success");
-                    });
-                }));
-
-                document.querySelectorAll('.btn-add-coins').forEach(btn => btn.addEventListener('click', (e) => {
-                    const uid = e.currentTarget.getAttribute('data-uid');
-                    const u = usersData.find(x => x.uid === uid);
-                    if(u) showInputModal(`修改 ${u.robloxId} 金幣`, "輸入增減數量(如: 5 或 -2)", async (val) => {
-                        const amount = parseInt(val);
-                        if (!isNaN(amount)) {
-                            const newCoins = (u.coins || 0) + amount;
-                            await updateDoc(doc(db, COL_USERS, uid), { coins: newCoins < 0 ? 0 : newCoins });
-                            showToast("金幣已更新", "success");
-                        } else if (val.trim() !== "") showToast("無效的數字", "error");
-                    });
-                }));
-
-                document.querySelectorAll('.btn-send-pq').forEach(btn => btn.addEventListener('click', (e) => {
-                    targetQuestionUid = e.currentTarget.getAttribute('data-uid');
-                    document.getElementById('host-q-input').value = '要哪個？';
-                    document.getElementById('host-q-opt1').value = '皮膚箱1';
-                    document.getElementById('host-q-opt2').value = '皮膚箱2';
-                    document.getElementById('host-q-opt3').value = '皮膚箱3';
-                    openModalWithAnim('host-q-modal');
-                }));
-
-                document.querySelectorAll('.btn-clear-pq').forEach(btn => btn.addEventListener('click', async (e) => {
-                    const uid = e.currentTarget.getAttribute('data-uid');
-                    await updateDoc(doc(db, COL_USERS, uid), { personalQuestion: null });
-                }));
-            }
+            });
         }
 
-        // 主持人發送個人問答
-        document.getElementById('btn-host-q-cancel').addEventListener('click', () => {
-            document.getElementById('host-q-modal').classList.add('hidden');
-        });
-        document.getElementById('btn-host-q-send').addEventListener('click', async () => {
-            if (!targetQuestionUid) return;
+        document.getElementById('btn-host-q-send').onclick = async () => {
             const q = document.getElementById('host-q-input').value.trim();
             const o1 = document.getElementById('host-q-opt1').value.trim();
             const o2 = document.getElementById('host-q-opt2').value.trim();
             const o3 = document.getElementById('host-q-opt3').value.trim();
-            if(!q || !o1 || !o2 || !o3) return showToast("所有欄位必填", "warning");
+            if(!q || !o1 || !o2 || !o3) return;
+            await setDoc(doc(db, COL_USERS, targetQuestionUid), {
+                personalQuestion: { q, opts: [o1, o2, o3], startTime: Date.now(), answer: null }
+            }, { merge: true });
+            document.getElementById('host-q-modal').classList.add('hidden');
+            showToast("問題已發送", "success");
+        };
+        document.getElementById('btn-host-q-cancel').onclick = () => document.getElementById('host-q-modal').classList.add('hidden');
 
-            try {
-                await updateDoc(doc(db, COL_USERS, targetQuestionUid), {
-                    personalQuestion: { q: q, opts: [o1, o2, o3], startTime: Date.now(), answer: null }
-                });
-                document.getElementById('host-q-modal').classList.add('hidden');
-                showToast("提問已發送", "success");
-            } catch(e) { showToast("錯誤", "error"); }
-        });
-
-        // 大廳發起押注
-        document.getElementById('btn-start-bet').addEventListener('click', async () => {
-            const title = document.getElementById('host-title').value;
-            const optA = document.getElementById('host-optA').value;
-            const optB = document.getElementById('host-optB').value;
-            if (!title || !optA || !optB) return showToast("欄位不可為空", 'warning');
-
-            const deletePromises = betsData.map(bet => deleteDoc(doc(db, COL_BETS, bet.id)));
-            await Promise.all(deletePromises);
-
+        document.getElementById('btn-start-bet').onclick = async () => {
+            const t = document.getElementById('host-title').value;
+            const a = document.getElementById('host-optA').value;
+            const b = document.getElementById('host-optB').value;
+            if(!t || !a || !b) return showToast("欄位必填", "error");
+            
+            await Promise.all(betsData.map(bet => deleteDoc(doc(db, COL_BETS, bet.id))));
             await setDoc(doc(db, COL_STATE, 'current'), {
-                title, optionA: optA, optionB: optB,
-                status: 'betting', startTime: Date.now(), result: null
+                title: t, optionA: a, optionB: b, status: 'betting', startTime: Date.now(), result: null
             });
-            showToast("押注開始", "success");
-        });
-
-        const resolveBet = async (winnerOption) => {
-            const winnerText = winnerOption === 'A' ? gameState.optionA : gameState.optionB;
-            showConfirm(`『${winnerText}』獲勝？`, async () => {
-                try {
-                    await updateDoc(doc(db, COL_STATE, 'current'), { status: 'resolved', result: winnerOption });
-                    let winnersCount = 0;
-                    for (const bet of betsData) {
-                        const isTimeValid = (bet.betTime - gameState.startTime) <= 11000;
-                        if (bet.option === winnerOption && isTimeValid) {
-                            const winner = usersData.find(u => u.uid === bet.uid);
-                            if (winner) {
-                                await updateDoc(doc(db, COL_USERS, bet.uid), { coins: (winner.coins || 0) + 1 });
-                                winnersCount++;
-                            }
-                        }
-                    }
-                    showToast(`結算完成，${winnersCount} 人獲勝`, "success");
-                } catch (err) { showToast("錯誤", "error"); }
-            });
+            showToast("押注已開始", "success");
         };
 
-        document.getElementById('btn-resolve-a').addEventListener('click', () => resolveBet('A'));
-        document.getElementById('btn-resolve-b').addEventListener('click', () => resolveBet('B'));
-
-        // --- 用戶綁定介面 ---
-        document.getElementById('btn-bind').addEventListener('click', async () => {
-            const input = document.getElementById('input-roblox').value.trim();
-            const errDiv = document.getElementById('bind-error');
-            const errText = document.getElementById('bind-error-text');
-            errDiv.classList.add('hidden');
-            if (!input) { errText.textContent = "請輸入 ID"; return errDiv.classList.remove('hidden'); }
-            if (usersData.some(u => u.robloxId.toLowerCase() === input.toLowerCase())) {
-                errText.textContent = "ID 已被使用"; return errDiv.classList.remove('hidden');
+        const resolveBet = async (winOpt) => {
+            await setDoc(doc(db, COL_STATE, 'current'), { status: 'resolved', result: winOpt }, { merge: true });
+            let winners = 0;
+            for(const b of betsData) {
+                if(b.option === winOpt) {
+                    const u = usersData.find(x => x.uid === b.uid);
+                    if(u) {
+                        await setDoc(doc(db, COL_USERS, b.uid), { coins: (u.coins || 0) + 1 }, { merge: true });
+                        winners++;
+                    }
+                }
             }
-            try {
-                await setDoc(doc(db, COL_USERS, currentUser.uid), { uid: currentUser.uid, email: currentUser.email, robloxId: input, coins: 0 });
-                showToast("綁定成功", "success");
-            } catch (err) { errText.textContent = "網路錯誤"; errDiv.classList.remove('hidden'); }
-        });
+            showToast(`結算完成，${winners} 人獲金幣`, "success");
+        };
+        document.getElementById('btn-resolve-a').onclick = () => resolveBet('A');
+        document.getElementById('btn-resolve-b').onclick = () => resolveBet('B');
 
-        // --- 客戶端更新邏輯 ---
+        // --- 用戶端 ---
+        document.getElementById('btn-bind').onclick = async () => {
+            const id = document.getElementById('input-roblox').value.trim();
+            if(!id) return;
+            await setDoc(doc(db, COL_USERS, currentUser.uid), { uid: currentUser.uid, robloxId: id, coins: 0 }, { merge: true });
+            showToast("綁定成功", "success");
+        };
+
         function updateClientUIFromTimer() {
-            if (currentUser?.email === ADMIN_EMAIL || !myData) return;
-            const timeSpan = document.getElementById('client-time-left');
-            const timeProgress = document.getElementById('time-progress');
-            
-            if (timeSpan) {
-                timeSpan.textContent = `00:${timeLeft.toString().padStart(2, '0')}`;
-                if (timeLeft <= 3) timeSpan.classList.add('text-red-500');
-                else timeSpan.classList.remove('text-red-500');
-            }
-            if (timeProgress) {
-                timeProgress.style.width = `${(timeLeft / 10) * 100}%`;
-                if (timeLeft <= 3) timeProgress.classList.replace('bg-liquid-text', 'bg-red-500');
-            }
-            
-            if (timeLeft <= 0) {
-                document.querySelectorAll('.btn-bet').forEach(b => {
-                    b.disabled = true; 
-                    b.classList.add('cursor-not-allowed');
-                    b.classList.remove('hover:-translate-y-1', 'btn-press', 'shadow-md', 'hover:shadow-lg');
-                });
-            }
+            const tEl = document.getElementById('client-time-left');
+            const pEl = document.getElementById('time-progress');
+            if(tEl) tEl.textContent = `00:${timeLeft.toString().padStart(2, '0')}`;
+            if(pEl) pEl.style.width = (timeLeft/10)*100 + '%';
+            if(timeLeft <= 0) document.querySelectorAll('.btn-bet').forEach(b => b.disabled = true);
         }
 
-        // 客戶端接收個人問答 (修復無限彈跳與寫入失敗問題)
         function updateClientQuestionModal() {
-            if (currentUser?.email === ADMIN_EMAIL || !myData) return;
-            const modal = document.getElementById('client-q-modal');
-            
-            if (!myData.personalQuestion) {
-                modal.classList.add('hidden');
-                return;
-            }
-            
+            if(!myData || !myData.personalQuestion) return document.getElementById('client-q-modal').classList.add('hidden');
             const pq = myData.personalQuestion;
-            const elapsed = Math.floor((Date.now() - pq.startTime) / 1000);
+            if(pq.answer) return document.getElementById('client-q-modal').classList.add('hidden');
             
-            // 只有在真的沒有答案、沒超時，且「不在提交中」時才開啟視窗
-            if (!pq.answer && elapsed < 30) {
-                if (modal.classList.contains('hidden') && !window.isSubmittingAnswer) {
-                    document.getElementById('client-q-text').textContent = pq.q;
-                    const optsContainer = document.getElementById('client-q-opts');
-                    optsContainer.innerHTML = '';
-                    
-                    pq.opts.forEach(opt => {
-                        const btn = document.createElement('button');
-                        btn.className = "w-full py-4 bg-white/80 hover:bg-white text-gray-800 rounded-2xl font-bold border border-gray-200 transition-all btn-press shadow-sm text-lg flex justify-center items-center gap-2";
-                        btn.textContent = opt;
-                        
-                        btn.onclick = async () => {
-                            // 防呆鎖定，避免連點
-                            if (window.isSubmittingAnswer) return;
-                            window.isSubmittingAnswer = true;
-                            
-                            // 視覺變化：按鈕變成 Loading 狀態
-                            btn.innerHTML = `<i class="fas fa-spinner fa-spin text-liquid-blue"></i> 處理中...`;
-                            optsContainer.querySelectorAll('button').forEach(b => {
-                                b.disabled = true;
-                                b.classList.add('opacity-50', 'cursor-not-allowed');
-                            });
-                            
-                            try {
-                                // 關鍵修復：覆蓋完整的 personalQuestion 物件，不使用容易出錯的 Dot Notation
-                                const updatedPQ = { ...pq, answer: opt };
-                                await updateDoc(doc(db, COL_USERS, currentUser.uid), { 
-                                    personalQuestion: updatedPQ 
-                                });
-                                
-                                // 更新成功才隱藏 Modal，防止因為 Optimistic UI 造成的閃爍無限彈跳
-                                modal.classList.add('hidden');
-                                showToast(`已送出: ${opt}`, 'success');
-                            } catch (err) {
-                                console.error("Submit Error: ", err);
-                                showToast("寫入資料庫失敗，請重試", "error");
-                                
-                                // 若失敗，還原按鈕狀態
-                                btn.textContent = opt;
-                                optsContainer.querySelectorAll('button').forEach(b => {
-                                    b.disabled = false;
-                                    b.classList.remove('opacity-50', 'cursor-not-allowed');
-                                });
-                            } finally {
-                                window.isSubmittingAnswer = false;
-                            }
-                        };
-                        optsContainer.appendChild(btn);
-                    });
-                    openModalWithAnim('client-q-modal');
-                }
-            } else {
-                // 如果已經有答案或是正在提交狀態，確保視窗被關閉
-                if (!window.isSubmittingAnswer) {
-                    modal.classList.add('hidden');
-                }
-            }
+            window.hasHandledTimeout = false;
+            document.getElementById('client-q-text').textContent = pq.q;
+            const container = document.getElementById('client-q-opts');
+            container.innerHTML = '';
+            pq.opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full py-4 bg-white hover:bg-blue-50 text-gray-800 rounded-2xl font-bold border border-gray-100 shadow-sm btn-press transition-all";
+                btn.textContent = opt;
+                btn.onclick = async () => {
+                    if(window.isSubmittingAnswer) return;
+                    window.isSubmittingAnswer = true;
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                    try {
+                        await setDoc(doc(db, COL_USERS, currentUser.uid), { personalQuestion: { answer: opt } }, { merge: true });
+                        showToast(`已送出: ${opt}`, "success");
+                    } catch(e) { showToast(`失敗: ${e.message}`, "error"); }
+                    finally { window.isSubmittingAnswer = false; }
+                };
+                container.appendChild(btn);
+            });
+            document.getElementById('client-q-modal').classList.remove('hidden');
         }
 
-        // 用戶主競技場渲染
         function renderClient() {
             document.getElementById('client-roblox-id').textContent = myData.robloxId;
             document.getElementById('client-coins').textContent = myData.coins || 0;
-            
-            // 計算目前排名
-            const sortedUsersDesc = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
-            const myRankIndex = sortedUsersDesc.findIndex(u => u.uid === currentUser.uid);
-            document.getElementById('client-rank-badge').textContent = `#${myRankIndex + 1}`;
-
             const arena = document.getElementById('client-arena-content');
             const myBet = betsData.find(b => b.uid === currentUser.uid);
 
-            if (!gameState || gameState.status === 'idle') {
+            if(!gameState || gameState.status === 'idle') {
+                arena.innerHTML = `<div class="liquid-glass p-12 rounded-[2rem] text-center mt-6 text-gray-400 font-bold">等待主持發起活動...</div>`;
+                return;
+            }
+
+            if(gameState.status === 'betting') {
                 arena.innerHTML = `
-                    <div class="liquid-glass rounded-[2rem] p-12 text-center mt-6">
-                        <div class="w-16 h-16 bg-white/40 border border-white rounded-full flex items-center justify-center mx-auto mb-4 animate-liquid-morph">
-                            <i class="fas fa-droplet text-2xl text-gray-400"></i>
+                    <div class="liquid-glass-heavy p-6 rounded-[2.5rem] mt-6">
+                        <h2 class="text-3xl font-black text-center mb-6">${gameState.title}</h2>
+                        <div class="w-full bg-gray-100 h-2 rounded-full mb-8 overflow-hidden">
+                            <div id="time-progress" class="bg-blue-500 h-full transition-all duration-1000"></div>
                         </div>
-                        <h2 class="text-xl font-bold mb-1 text-gray-700">等待中</h2>
-                        <p class="text-sm text-liquid-gray">等待對決開始...</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="btn-bet py-8 rounded-[2rem] font-black text-xl transition-all ${myBet?.option==='A'?'bg-blue-500 text-white shadow-lg':'bg-white border border-gray-100'}" data-opt="A" ${myBet?'disabled':''}>${gameState.optionA}</button>
+                            <button class="btn-bet py-8 rounded-[2rem] font-black text-xl transition-all ${myBet?.option==='B'?'bg-purple-500 text-white shadow-lg':'bg-white border border-gray-100'}" data-opt="B" ${myBet?'disabled':''}>${gameState.optionB}</button>
+                        </div>
                     </div>`;
-                return;
-            }
-
-            if (gameState.status === 'betting') {
-                let content = `
-                    <div class="liquid-glass-heavy rounded-[2rem] p-6 sm:p-10 text-center relative overflow-hidden mt-6 shadow-sm border-t border-white">
-                        <p class="text-[11px] font-bold text-liquid-blue uppercase tracking-[0.2em] mb-3">對決中</p>
-                        <h2 class="text-3xl sm:text-4xl font-black text-gray-800 tracking-tight mb-8">${gameState.title}</h2>
-                        
-                        <div class="max-w-[200px] mx-auto mb-10">
-                            <div class="flex justify-between items-center mb-2 text-[11px] font-bold">
-                                <span class="text-gray-500 uppercase tracking-wider">剩餘時間</span>
-                                <span id="client-time-left" class="font-mono text-base tracking-tight bg-white px-2 py-0.5 rounded-md shadow-sm border border-gray-100">00:${timeLeft.toString().padStart(2, '0')}</span>
-                            </div>
-                            <div class="w-full bg-gray-200/60 rounded-full h-2 overflow-hidden shadow-inner">
-                                <div id="time-progress" class="bg-liquid-text h-2 rounded-full transition-all duration-100 ease-linear" style="width: ${(timeLeft/10)*100}%"></div>
-                            </div>
-                        </div>`;
-
-                const btnA_selected = myBet && myBet.option === 'A';
-                const btnB_selected = myBet && myBet.option === 'B';
-                
-                const disableInteraction = (timeLeft <= 0 || myBet);
-                const classBase = "rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden";
-                const classInteract = disableInteraction ? "cursor-not-allowed" : "hover:-translate-y-1 shadow-md hover:shadow-lg btn-press";
-                
-                const styleA = btnA_selected ? "ring-4 ring-green-400 bg-white shadow-lg scale-105" : "bg-white/80 border border-white";
-                const styleB = btnB_selected ? "ring-4 ring-green-400 bg-white shadow-lg scale-105" : "bg-white/80 border border-white";
-
-                content += `
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button class="btn-bet ${classBase} ${styleA} ${classInteract}" data-opt="A" ${disableInteraction ? 'disabled' : ''}>
-                            <span class="w-10 h-10 rounded-full ${btnA_selected ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-500'} flex items-center justify-center text-sm font-black mb-1 transition-colors">A</span>
-                            <span class="text-2xl font-black text-gray-800">${gameState.optionA}</span>
-                            ${btnA_selected ? '<div class="absolute top-3 right-3 text-green-500 text-lg"><i class="fas fa-check-circle"></i></div>' : ''}
-                        </button>
-                        <button class="btn-bet ${classBase} ${styleB} ${classInteract}" data-opt="B" ${disableInteraction ? 'disabled' : ''}>
-                            <span class="w-10 h-10 rounded-full ${btnB_selected ? 'bg-green-100 text-green-600' : 'bg-purple-50 text-purple-500'} flex items-center justify-center text-sm font-black mb-1 transition-colors">B</span>
-                            <span class="text-2xl font-black text-gray-800">${gameState.optionB}</span>
-                            ${btnB_selected ? '<div class="absolute top-3 right-3 text-green-500 text-lg"><i class="fas fa-check-circle"></i></div>' : ''}
-                        </button>
-                    </div>
-                </div>`;
-
-                arena.innerHTML = content;
-                
-                if (!myBet) {
-                    document.querySelectorAll('.btn-bet').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            if (timeLeft <= 0) return;
-                            try {
-                                await setDoc(doc(db, COL_BETS, currentUser.uid), { uid: currentUser.uid, robloxId: myData.robloxId, option: e.currentTarget.getAttribute('data-opt'), betTime: Date.now() });
-                                showToast("押注成功", "success");
-                            } catch (err) { showToast("錯誤", "error"); }
-                        });
-                    });
-                }
-                return;
-            }
-
-            if (gameState.status === 'resolved') {
-                const winnerText = gameState.result === 'A' ? gameState.optionA : gameState.optionB;
-                let resultHtml = `<div class="mt-6 text-[11px] font-bold text-gray-400 uppercase tracking-widest py-2 px-4 bg-white/50 border border-white rounded-full inline-block">未參與</div>`;
-                
-                if (myBet) {
-                    if (myBet.option === gameState.result) {
-                        resultHtml = `
-                        <div class="mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-100 border border-white rounded-[2rem] animate-scale-in shadow-sm">
-                            <p class="text-green-600 font-black text-xl flex flex-col items-center justify-center gap-2">
-                                <i class="fas fa-gem text-3xl mb-1"></i> 勝利
-                            </p>
-                        </div>`;
-                    } else {
-                        resultHtml = `
-                        <div class="mt-8 p-6 bg-white/50 border border-white rounded-[2rem] animate-scale-in">
-                            <p class="text-gray-500 font-bold text-lg flex flex-col items-center justify-center gap-2">
-                                <i class="fas fa-face-frown text-3xl mb-1 opacity-50"></i> 失敗
-                            </p>
-                        </div>`;
-                    }
-                }
-                
+                document.querySelectorAll('.btn-bet').forEach(b => b.onclick = async (e) => {
+                    if(timeLeft <= 0) return;
+                    const opt = e.currentTarget.dataset.opt;
+                    await setDoc(doc(db, COL_BETS, currentUser.uid), { uid: currentUser.uid, option: opt, betTime: Date.now() });
+                    showToast("押注成功", "success");
+                });
+            } else if(gameState.status === 'resolved') {
+                const win = myBet?.option === gameState.result;
                 arena.innerHTML = `
-                    <div class="liquid-glass rounded-[2rem] p-10 text-center mt-6">
-                        <p class="text-[11px] font-bold text-liquid-blue uppercase tracking-widest mb-4">結果</p>
-                        <h2 class="text-4xl font-black text-gray-800 tracking-tight mb-2">${winnerText}</h2>
-                        ${resultHtml}
+                    <div class="liquid-glass p-10 rounded-[2.5rem] text-center mt-6">
+                        <p class="text-xs font-black text-blue-500 mb-2 uppercase tracking-widest">結果揭曉</p>
+                        <h2 class="text-4xl font-black mb-6">${gameState.result === 'A' ? gameState.optionA : gameState.optionB} 勝</h2>
+                        <div class="py-4 px-8 rounded-2xl inline-block font-black ${win?'bg-green-500 text-white':'bg-gray-100 text-gray-400'}">
+                            ${myBet ? (win ? '恭喜獲得 1 金幣！' : '下次加油') : '未參與'}
+                        </div>
                     </div>`;
             }
         }
+
+        // --- 通用 Modal 綁定 ---
+        let confirmCb = null;
+        function showConfirm(m, cb) { document.getElementById('confirm-message').textContent=m; document.getElementById('confirm-modal').classList.remove('hidden'); confirmCb=cb; }
+        document.getElementById('btn-confirm-ok').onclick = () => { document.getElementById('confirm-modal').classList.add('hidden'); confirmCb?.(); };
+        document.getElementById('btn-confirm-cancel').onclick = () => document.getElementById('confirm-modal').classList.add('hidden');
+
+        let inputCb = null;
+        function showInputModal(t, p, cb) { 
+            document.getElementById('input-modal-title').textContent=t; 
+            document.getElementById('input-modal-value').placeholder=p;
+            document.getElementById('input-modal-value').value='';
+            document.getElementById('input-modal').classList.remove('hidden'); 
+            inputCb=cb; 
+        }
+        document.getElementById('btn-input-ok').onclick = () => { document.getElementById('input-modal').classList.add('hidden'); inputCb?.(document.getElementById('input-modal-value').value); };
+        document.getElementById('btn-input-cancel').onclick = () => document.getElementById('input-modal').classList.add('hidden');
+
     </script>
 </body>
 </html>
-
 
