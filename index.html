@@ -499,10 +499,8 @@
         }
 
         setInterval(() => {
-            const now = Date.now();
             if (gameState && gameState.status === 'betting') {
-                const elapsed = Math.floor((now - gameState.startTime) / 1000);
-                timeLeft = Math.max(0, 10 - elapsed);
+                timeLeft = Math.max(0, 10 - Math.floor((Date.now() - gameState.startTime) / 1000));
                 updateClientUIFromTimer();
                 if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
             }
@@ -510,6 +508,12 @@
 
         function renderLogic() {
             if (!currentUser) return;
+            
+            // 【修復核心】：在每次資料庫更新導致重新渲染前，強制作一次即時時間校準
+            if (gameState && gameState.status === 'betting') {
+                timeLeft = Math.max(0, 10 - Math.floor((Date.now() - gameState.startTime) / 1000));
+            }
+
             if (currentUser.email === ADMIN_EMAIL) {
                 showView('view-host');
                 renderHost();
@@ -657,20 +661,15 @@
         document.getElementById('btn-resolve-b').addEventListener('click', () => resolveBet('B'));
 
         // --- 用戶綁定介面 (包含皮膚箱選擇) ---
-        
-        // 皮膚箱按鈕點擊邏輯
         const skinBoxBtns = document.querySelectorAll('.skin-box-option');
         skinBoxBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // 重置所有按鈕樣式
                 skinBoxBtns.forEach(b => {
                     b.classList.remove('bg-blue-50', 'border-liquid-blue', 'text-liquid-blue', 'shadow-sm');
                     b.classList.add('bg-white/60', 'border-transparent', 'text-gray-500');
                     b.querySelector('i').classList.remove('fa-box-open');
                     b.querySelector('i').classList.add('fa-box');
                 });
-                
-                // 套用選取樣式
                 const currentBtn = e.currentTarget;
                 currentBtn.classList.add('bg-blue-50', 'border-liquid-blue', 'text-liquid-blue', 'shadow-sm');
                 currentBtn.classList.remove('bg-white/60', 'border-transparent', 'text-gray-500');
@@ -691,7 +690,6 @@
                 errText.textContent = "ID 已被使用"; return errDiv.classList.remove('hidden');
             }
             try {
-                // 將 selectedSkinBox 一併寫入資料庫
                 await setDoc(doc(db, COL_USERS, currentUser.uid), { 
                     uid: currentUser.uid, 
                     email: currentUser.email, 
@@ -700,7 +698,7 @@
                     skinBox: selectedSkinBox 
                 });
                 showToast("綁定成功", "success");
-            } catch (err) { errText.textContent = "網路錯誤 (請確認 Firestore Rules)"; errDiv.classList.remove('hidden'); }
+            } catch (err) { errText.textContent = "網路錯誤或無權限"; errDiv.classList.remove('hidden'); }
         });
 
         // --- 客戶端更新邏輯 ---
@@ -732,7 +730,6 @@
             document.getElementById('client-roblox-id').textContent = myData.robloxId;
             document.getElementById('client-coins').textContent = myData.coins || 0;
             
-            // 顯示選擇的皮膚箱
             const skinBoxEl = document.getElementById('client-skin-box');
             if (myData.skinBox) {
                 skinBoxEl.textContent = myData.skinBox;
@@ -779,6 +776,7 @@
                 const btnA_selected = myBet && myBet.option === 'A';
                 const btnB_selected = myBet && myBet.option === 'B';
                 
+                // 【修復核心】：利用已經校準好的 timeLeft 判斷是否鎖住按鈕
                 const disableInteraction = (timeLeft <= 0 || myBet);
                 const classBase = "rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden";
                 const classInteract = disableInteraction ? "cursor-not-allowed" : "hover:-translate-y-1 shadow-md hover:shadow-lg btn-press";
@@ -808,9 +806,16 @@
                         btn.addEventListener('click', async (e) => {
                             if (timeLeft <= 0) return;
                             try {
-                                await setDoc(doc(db, COL_BETS, currentUser.uid), { uid: currentUser.uid, robloxId: myData.robloxId, option: e.currentTarget.getAttribute('data-opt'), betTime: Date.now() });
+                                await setDoc(doc(db, COL_BETS, currentUser.uid), { 
+                                    uid: currentUser.uid, 
+                                    robloxId: myData.robloxId, 
+                                    option: e.currentTarget.getAttribute('data-opt'), 
+                                    betTime: Date.now() 
+                                });
                                 showToast("押注成功", "success");
-                            } catch (err) { showToast("錯誤", "error"); }
+                            } catch (err) { 
+                                showToast("寫入失敗，請檢查網路", "error"); 
+                            }
                         });
                     });
                 }
