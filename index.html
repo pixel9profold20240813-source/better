@@ -370,6 +370,9 @@
         let timeLeft = 0;
         let unsubUsers, unsubState, unsubBets;
         let targetQuestionUid = null;
+        
+        // 全局鎖，防止客戶端連點及樂觀更新導致的閃爍
+        window.isSubmittingAnswer = false;
 
         // --- Toast & Modals ---
         function showToast(message, type = 'info') {
@@ -523,8 +526,17 @@
                 if (qLeft > 0) {
                     if (qTimerEl) qTimerEl.textContent = `${qLeft}s`;
                 } else {
-                    document.getElementById('client-q-modal').classList.add('hidden');
-                    updateDoc(doc(db, COL_USERS, currentUser.uid), { 'personalQuestion.answer': '超時' });
+                    // 超時提交機制：防止連發與回滾
+                    if (!window.isSubmittingAnswer) {
+                        window.isSubmittingAnswer = true;
+                        document.getElementById('client-q-modal').classList.add('hidden');
+                        
+                        // 構建完整物件避免 Dot Notation 潛在報錯
+                        const updatedPQ = { ...myData.personalQuestion, answer: '超時' };
+                        updateDoc(doc(db, COL_USERS, currentUser.uid), { personalQuestion: updatedPQ })
+                            .catch(err => console.error("Timeout submit error:", err))
+                            .finally(() => { window.isSubmittingAnswer = false; });
+                    }
                 }
             }
 
@@ -537,7 +549,7 @@
                         const el = document.getElementById(`q-status-${u.uid}`);
                         if (el) {
                             if (qLeft > 0) el.textContent = `答題中 (${qLeft}s)`;
-                            else el.textContent = `超時`;
+                            else el.textContent = `超時中...`;
                         }
                     }
                 });
@@ -607,7 +619,7 @@
                     let betHtml = `<span class="text-gray-400/80 text-xs font-medium border border-gray-300/50 px-2 py-1 rounded-md">閒置</span>`;
                     if (userBet) betHtml = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-white/60 text-liquid-blue border border-blue-100 shadow-sm">選 ${userBet.option}</span>`;
                     
-                    // 個人問答狀態：固定保留「發問」按鈕在左側，狀態顯示在右側
+                    // 個人問答狀態
                     let statusHtml = '';
                     if (u.personalQuestion) {
                         if (u.personalQuestion.answer) {
@@ -702,7 +714,6 @@
             if(!q || !o1 || !o2 || !o3) return showToast("所有欄位必填", "warning");
 
             try {
-                // 如果已經有舊問題，這裡的 updateDoc 會直接覆蓋，達成「二次發問」的功能
                 await updateDoc(doc(db, COL_USERS, targetQuestionUid), {
                     personalQuestion: { q: q, opts: [o1, o2, o3], startTime: Date.now(), answer: null }
                 });
@@ -785,7 +796,6 @@
             }
             
             if (timeLeft <= 0) {
-                // 時間到不變淡，單純加上不可點擊狀態
                 document.querySelectorAll('.btn-bet').forEach(b => {
                     b.disabled = true; 
                     b.classList.add('cursor-not-allowed');
@@ -794,7 +804,7 @@
             }
         }
 
-        // 客戶端接收個人問答
+        // 客戶端接收個人問答 (修復無限彈跳與寫入失敗問題)
         function updateClientQuestionModal() {
             if (currentUser?.email === ADMIN_EMAIL || !myData) return;
             const modal = document.getElementById('client-q-modal');
@@ -807,26 +817,63 @@
             const pq = myData.personalQuestion;
             const elapsed = Math.floor((Date.now() - pq.startTime) / 1000);
             
+            // 只有在真的沒有答案、沒超時，且「不在提交中」時才開啟視窗
             if (!pq.answer && elapsed < 30) {
-                if (modal.classList.contains('hidden')) {
+                if (modal.classList.contains('hidden') && !window.isSubmittingAnswer) {
                     document.getElementById('client-q-text').textContent = pq.q;
                     const optsContainer = document.getElementById('client-q-opts');
                     optsContainer.innerHTML = '';
+                    
                     pq.opts.forEach(opt => {
                         const btn = document.createElement('button');
-                        btn.className = "w-full py-4 bg-white/80 hover:bg-white text-gray-800 rounded-2xl font-bold border border-gray-200 transition-all btn-press shadow-sm text-lg";
+                        btn.className = "w-full py-4 bg-white/80 hover:bg-white text-gray-800 rounded-2xl font-bold border border-gray-200 transition-all btn-press shadow-sm text-lg flex justify-center items-center gap-2";
                         btn.textContent = opt;
+                        
                         btn.onclick = async () => {
-                            modal.classList.add('hidden');
-                            await updateDoc(doc(db, COL_USERS, currentUser.uid), { 'personalQuestion.answer': opt });
-                            showToast(`已選: ${opt}`, 'success');
+                            // 防呆鎖定，避免連點
+                            if (window.isSubmittingAnswer) return;
+                            window.isSubmittingAnswer = true;
+                            
+                            // 視覺變化：按鈕變成 Loading 狀態
+                            btn.innerHTML = `<i class="fas fa-spinner fa-spin text-liquid-blue"></i> 處理中...`;
+                            optsContainer.querySelectorAll('button').forEach(b => {
+                                b.disabled = true;
+                                b.classList.add('opacity-50', 'cursor-not-allowed');
+                            });
+                            
+                            try {
+                                // 關鍵修復：覆蓋完整的 personalQuestion 物件，不使用容易出錯的 Dot Notation
+                                const updatedPQ = { ...pq, answer: opt };
+                                await updateDoc(doc(db, COL_USERS, currentUser.uid), { 
+                                    personalQuestion: updatedPQ 
+                                });
+                                
+                                // 更新成功才隱藏 Modal，防止因為 Optimistic UI 造成的閃爍無限彈跳
+                                modal.classList.add('hidden');
+                                showToast(`已送出: ${opt}`, 'success');
+                            } catch (err) {
+                                console.error("Submit Error: ", err);
+                                showToast("寫入資料庫失敗，請重試", "error");
+                                
+                                // 若失敗，還原按鈕狀態
+                                btn.textContent = opt;
+                                optsContainer.querySelectorAll('button').forEach(b => {
+                                    b.disabled = false;
+                                    b.classList.remove('opacity-50', 'cursor-not-allowed');
+                                });
+                            } finally {
+                                window.isSubmittingAnswer = false;
+                            }
                         };
                         optsContainer.appendChild(btn);
                     });
                     openModalWithAnim('client-q-modal');
                 }
             } else {
-                modal.classList.add('hidden');
+                // 如果已經有答案或是正在提交狀態，確保視窗被關閉
+                if (!window.isSubmittingAnswer) {
+                    modal.classList.add('hidden');
+                }
             }
         }
 
