@@ -36,7 +36,7 @@
         <!-- 1. Loading View -->
         <div id="view-loading" class="flex flex-col items-center justify-center min-h-[80vh]">
             <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-4"></i>
-            <p class="text-gray-400">系統載入中...</p>
+            <p id="loading-text" class="text-gray-400">系統載入中...</p>
         </div>
 
         <!-- 2. Login View -->
@@ -171,9 +171,9 @@
 
     <!-- Firebase Logic -->
     <script type="module">
-        // Import Firebase SDK v11
+        // Import Firebase SDK v11 (使用 signInWithRedirect 解決 Safari 阻擋問題)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Your Firebase config
@@ -210,12 +210,8 @@
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = {
-                success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600', warning: 'bg-yellow-600'
-            };
-            const icons = {
-                success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle'
-            };
+            const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600', warning: 'bg-yellow-600' };
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle' };
             toast.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 toast-animate pointer-events-auto`;
             toast.innerHTML = `<i class="fas ${icons[type]}"></i> <span>${message}</span>`;
             container.appendChild(toast);
@@ -242,7 +238,6 @@
             confirmCallback = null;
         });
 
-        // View Management
         function showView(viewId) {
             ['view-loading', 'view-login', 'view-bind', 'view-host', 'view-client'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
@@ -250,7 +245,15 @@
             if (viewId) document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // Auth Setup
+        // ==========================================
+        // Auth Setup (處理 Safari 跳轉回來的結果)
+        // ==========================================
+        getRedirectResult(auth).catch((error) => {
+            console.error("登入跳轉錯誤:", error);
+            showView('view-login');
+            showToast("登入發生錯誤，請確定已將網址加入Firebase白名單", "error");
+        });
+
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (!user) {
@@ -265,18 +268,19 @@
             }
         });
 
-        document.getElementById('btn-login').addEventListener('click', async () => {
-            try {
-                const provider = new GoogleAuthProvider();
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                showToast("登入失敗，請確認是否允許彈出視窗。", 'error');
-            }
+        // 登入按鈕改為 signInWithRedirect (解決 Safari 擋彈窗)
+        document.getElementById('btn-login').addEventListener('click', () => {
+            document.getElementById('loading-text').textContent = "正在導向 Google 登入...";
+            showView('view-loading');
+            const provider = new GoogleAuthProvider();
+            signInWithRedirect(auth, provider);
         });
 
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-        // Data Listeners
+        // ==========================================
+        // Data Listeners & Logic
+        // ==========================================
         function setupRealtimeListeners() {
             showView('view-loading');
             
@@ -306,10 +310,8 @@
             if (timerInterval) clearInterval(timerInterval);
         }
 
-        // Router / Render Logic
         function renderLogic() {
             if (!currentUser) return;
-            
             if (currentUser.email === ADMIN_EMAIL) {
                 showView('view-host');
                 renderHost();
@@ -323,11 +325,8 @@
             }
         }
 
-        // ==========================================
-        // HOST DASHBOARD
-        // ==========================================
+        // --- Host UI ---
         function renderHost() {
-            // Render State
             const stateDiv = document.getElementById('host-state-content');
             const resolvePanel = document.getElementById('host-resolve-panel');
             
@@ -361,10 +360,8 @@
                 `;
             }
 
-            // Render Table
             const tbody = document.getElementById('host-table-body');
             tbody.innerHTML = '';
-            
             const sortedUsers = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
             if (sortedUsers.length === 0) {
                 tbody.innerHTML = `<tr><td colSpan="5" class="py-8 text-center text-gray-500">目前沒有已綁定的用戶</td></tr>`;
@@ -376,7 +373,6 @@
                         const styleClass = userBet.option === 'A' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300';
                         betHtml = `<span class="px-2 py-1 rounded text-xs font-bold ${styleClass}">選 ${userBet.option}</span>`;
                     }
-                    
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-gray-700/50 hover:bg-gray-750";
                     tr.innerHTML = `
@@ -393,7 +389,6 @@
                     tbody.appendChild(tr);
                 });
 
-                // Attach reset events
                 document.querySelectorAll('.btn-reset-coins').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const uid = e.currentTarget.getAttribute('data-uid');
@@ -409,17 +404,12 @@
             }
         }
 
-        // Host Actions
         document.getElementById('btn-start-bet').addEventListener('click', async () => {
             const title = document.getElementById('host-title').value;
             const optA = document.getElementById('host-optA').value;
             const optB = document.getElementById('host-optB').value;
-            
-            if (!title || !optA || !optB) {
-                return showToast("請填寫完整押注資訊", 'warning');
-            }
+            if (!title || !optA || !optB) return showToast("請填寫完整押注資訊", 'warning');
 
-            // Clear old bets
             const deletePromises = betsData.map(bet => deleteDoc(doc(db, COL_BETS, bet.id)));
             await Promise.all(deletePromises);
 
@@ -434,99 +424,64 @@
             const winnerText = winnerOption === 'A' ? gameState.optionA : gameState.optionB;
             showConfirm(`確定結果為「${winnerText}」嗎？`, async () => {
                 try {
-                    await updateDoc(doc(db, COL_STATE, 'current'), {
-                        status: 'resolved', result: winnerOption
-                    });
-
+                    await updateDoc(doc(db, COL_STATE, 'current'), { status: 'resolved', result: winnerOption });
                     let winnersCount = 0;
                     for (const bet of betsData) {
                         const isTimeValid = (bet.betTime - gameState.startTime) <= 11000;
                         if (bet.option === winnerOption && isTimeValid) {
                             const winner = usersData.find(u => u.uid === bet.uid);
                             if (winner) {
-                                await updateDoc(doc(db, COL_USERS, bet.uid), {
-                                    coins: (winner.coins || 0) + 1
-                                });
+                                await updateDoc(doc(db, COL_USERS, bet.uid), { coins: (winner.coins || 0) + 1 });
                                 winnersCount++;
                             }
                         }
                     }
                     showToast(`結算完成！共 ${winnersCount} 人獲勝`, "success");
-                } catch (err) {
-                    showToast("結算發生錯誤", "error");
-                }
+                } catch (err) { showToast("結算發生錯誤", "error"); }
             });
         };
 
         document.getElementById('btn-resolve-a').addEventListener('click', () => resolveBet('A'));
         document.getElementById('btn-resolve-b').addEventListener('click', () => resolveBet('B'));
 
-
-        // ==========================================
-        // CLIENT DASHBOARD
-        // ==========================================
+        // --- Client UI ---
         document.getElementById('btn-bind').addEventListener('click', async () => {
             const input = document.getElementById('input-roblox').value.trim();
             const errDiv = document.getElementById('bind-error');
             const errText = document.getElementById('bind-error-text');
-            
             errDiv.classList.add('hidden');
-            if (!input) {
-                errText.textContent = "請輸入Roblox ID";
-                return errDiv.classList.remove('hidden');
+            if (!input) { errText.textContent = "請輸入Roblox ID"; return errDiv.classList.remove('hidden'); }
+            if (usersData.some(u => u.robloxId.toLowerCase() === input.toLowerCase())) {
+                errText.textContent = "此 ID 已經被綁定過了！"; return errDiv.classList.remove('hidden');
             }
-
-            const isTaken = usersData.some(u => u.robloxId.toLowerCase() === input.toLowerCase());
-            if (isTaken) {
-                errText.textContent = "此 ID 已經被綁定過了！";
-                return errDiv.classList.remove('hidden');
-            }
-
             try {
-                await setDoc(doc(db, COL_USERS, currentUser.uid), {
-                    uid: currentUser.uid, email: currentUser.email, robloxId: input, coins: 0
-                });
+                await setDoc(doc(db, COL_USERS, currentUser.uid), { uid: currentUser.uid, email: currentUser.email, robloxId: input, coins: 0 });
                 showToast("綁定成功！", "success");
             } catch (err) {
-                errText.textContent = "綁定失敗，請重試或檢查權限設定";
-                errDiv.classList.remove('hidden');
+                errText.textContent = "綁定失敗，請重試或檢查權限設定"; errDiv.classList.remove('hidden');
             }
         });
 
-        // Timer Logic
         function handleTimer() {
             if (timerInterval) clearInterval(timerInterval);
-            
             if (gameState?.status === 'betting') {
                 timerInterval = setInterval(() => {
                     const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
                     const remaining = 10 - elapsed;
-                    if (remaining <= 0) {
-                        timeLeft = 0;
-                        clearInterval(timerInterval);
-                    } else {
-                        timeLeft = remaining;
-                    }
+                    if (remaining <= 0) { timeLeft = 0; clearInterval(timerInterval); } else { timeLeft = remaining; }
                     updateClientUIFromTimer();
-                    // Also subtly update host view if active
                     if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
                 }, 100);
-            } else {
-                timeLeft = 0;
-            }
+            } else { timeLeft = 0; }
         }
 
-        // Fast update for timer without full re-render
         function updateClientUIFromTimer() {
             if (currentUser?.email === ADMIN_EMAIL || !myData) return;
             const timeSpan = document.getElementById('client-time-left');
             if (timeSpan) timeSpan.textContent = `${timeLeft} 秒`;
-            
-            const btns = document.querySelectorAll('.btn-bet');
-            if (timeLeft <= 0 && btns.length > 0) {
-                btns.forEach(b => {
-                    b.disabled = true;
-                    b.classList.add('opacity-50', 'cursor-not-allowed');
+            if (timeLeft <= 0) {
+                document.querySelectorAll('.btn-bet').forEach(b => {
+                    b.disabled = true; b.classList.add('opacity-50', 'cursor-not-allowed');
                 });
             }
         }
@@ -534,16 +489,11 @@
         function renderClient() {
             document.getElementById('client-roblox-id').textContent = myData.robloxId;
             document.getElementById('client-coins').textContent = myData.coins || 0;
-
             const arena = document.getElementById('client-arena-content');
             const myBet = betsData.find(b => b.uid === currentUser.uid);
 
             if (!gameState || gameState.status === 'idle') {
-                arena.innerHTML = `
-                    <div class="py-12">
-                        <i class="fas fa-clock text-6xl text-gray-600 mx-auto mb-4 animate-bounce"></i>
-                        <h2 class="text-2xl font-bold text-gray-400">等待主持端發起押注...</h2>
-                    </div>`;
+                arena.innerHTML = `<div class="py-12"><i class="fas fa-clock text-6xl text-gray-600 mx-auto mb-4 animate-bounce"></i><h2 class="text-2xl font-bold text-gray-400">等待主持端發起押注...</h2></div>`;
                 return;
             }
 
@@ -556,51 +506,32 @@
                                 <i class="fas fa-stopwatch"></i> 剩餘時間: <span id="client-time-left">${timeLeft} 秒</span>
                             </span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
 
                 if (!myBet) {
                     const disableClass = timeLeft <= 0 ? "opacity-50 cursor-not-allowed" : "";
                     content += `
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button class="btn-bet group relative bg-gray-900 border-2 border-green-500/50 hover:border-green-500 hover:bg-green-500/10 rounded-xl p-6 transition ${disableClass}" data-opt="A">
-                                <span class="block text-sm text-green-500 mb-2">選項 A</span>
-                                <span class="block text-2xl font-bold">${gameState.optionA}</span>
+                                <span class="block text-sm text-green-500 mb-2">選項 A</span><span class="block text-2xl font-bold">${gameState.optionA}</span>
                             </button>
                             <button class="btn-bet group relative bg-gray-900 border-2 border-blue-500/50 hover:border-blue-500 hover:bg-blue-500/10 rounded-xl p-6 transition ${disableClass}" data-opt="B">
-                                <span class="block text-sm text-blue-500 mb-2">選項 B</span>
-                                <span class="block text-2xl font-bold">${gameState.optionB}</span>
+                                <span class="block text-sm text-blue-500 mb-2">選項 B</span><span class="block text-2xl font-bold">${gameState.optionB}</span>
                             </button>
-                        </div>
-                    `;
+                        </div>`;
                     arena.innerHTML = content;
-                    
-                    // Attach bet events
                     document.querySelectorAll('.btn-bet').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
                             if (timeLeft <= 0) return;
-                            const opt = e.currentTarget.getAttribute('data-opt');
                             try {
-                                await setDoc(doc(db, COL_BETS, currentUser.uid), {
-                                    uid: currentUser.uid, robloxId: myData.robloxId, option: opt, betTime: Date.now()
-                                });
+                                await setDoc(doc(db, COL_BETS, currentUser.uid), { uid: currentUser.uid, robloxId: myData.robloxId, option: e.currentTarget.getAttribute('data-opt'), betTime: Date.now() });
                                 showToast("押注成功！", "success");
-                            } catch (err) {
-                                showToast("押注失敗，請確保在時限內", "error");
-                            }
+                            } catch (err) { showToast("押注失敗，請確保在時限內", "error"); }
                         });
                     });
-
                 } else {
                     const chosenText = myBet.option === 'A' ? gameState.optionA : gameState.optionB;
-                    arena.innerHTML = content + `
-                        <div class="py-8">
-                            <i class="fas fa-check-circle text-6xl text-green-500 mx-auto mb-4"></i>
-                            <h3 class="text-xl font-bold">押注成功！</h3>
-                            <p class="text-gray-400 mt-2">您選擇了：<span class="font-bold text-white">${chosenText}</span></p>
-                            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-spinner fa-spin"></i> 等待結果結算中...</p>
-                        </div>
-                    `;
+                    arena.innerHTML = content + `<div class="py-8"><i class="fas fa-check-circle text-6xl text-green-500 mx-auto mb-4"></i><h3 class="text-xl font-bold">押注成功！</h3><p class="text-gray-400 mt-2">您選擇了：<span class="font-bold text-white">${chosenText}</span></p><p class="text-sm text-gray-500 mt-4"><i class="fas fa-spinner fa-spin"></i> 等待結果結算中...</p></div>`;
                 }
                 return;
             }
@@ -608,7 +539,6 @@
             if (gameState.status === 'resolved') {
                 const winnerText = gameState.result === 'A' ? gameState.optionA : gameState.optionB;
                 let resultHtml = `<div class="text-gray-500 mt-4">您未參與此局押注</div>`;
-                
                 if (myBet) {
                     if (myBet.option === gameState.result) {
                         resultHtml = `<div class="text-green-400 font-bold flex items-center justify-center gap-2 text-2xl mt-4"><i class="fas fa-trophy"></i> 恭喜！您贏得了 1 金幣</div>`;
@@ -616,19 +546,11 @@
                         resultHtml = `<div class="text-red-400 font-bold flex items-center justify-center gap-2 text-2xl mt-4"><i class="fas fa-times-circle"></i> 猜錯了！再接再厲</div>`;
                     }
                 }
-
-                arena.innerHTML = `
-                    <div class="py-8">
-                        <h2 class="text-2xl font-bold mb-6 text-gray-300">本局結果</h2>
-                        <div class="text-4xl font-black text-white mb-2 p-4 bg-gray-900 rounded-lg inline-block border border-gray-700 shadow-inner">
-                            ${winnerText} 獲勝！
-                        </div>
-                        ${resultHtml}
-                    </div>
-                `;
+                arena.innerHTML = `<div class="py-8"><h2 class="text-2xl font-bold mb-6 text-gray-300">本局結果</h2><div class="text-4xl font-black text-white mb-2 p-4 bg-gray-900 rounded-lg inline-block border border-gray-700 shadow-inner">${winnerText} 獲勝！</div>${resultHtml}</div>`;
             }
         }
     </script>
 </body>
 </html>
+
 
