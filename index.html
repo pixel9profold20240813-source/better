@@ -96,7 +96,7 @@
         }
 
         /* 按鈕縮放回饋 */
-        .btn-press { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease; }
+        .btn-press { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; }
         .btn-press:active:not(:disabled) { transform: scale(0.96); }
 
         /* Toast 動畫 */
@@ -158,22 +158,38 @@
 
         <!-- 3. Bind Roblox View -->
         <div id="view-bind" class="hidden max-w-md mx-auto mt-12 animate-scale-in">
-            <div class="liquid-glass-heavy p-10 rounded-[2rem] text-center">
+            <div class="liquid-glass-heavy p-8 sm:p-10 rounded-[2rem] text-center">
                 <div class="w-16 h-16 bg-white/50 border border-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                     <i class="fas fa-user-tag text-2xl text-liquid-blue"></i>
                 </div>
-                <h2 class="text-2xl font-bold mb-8 tracking-tight">綁定帳號</h2>
+                <h2 class="text-2xl font-bold mb-6 tracking-tight">綁定帳號與選擇獎勵</h2>
                 
                 <div id="bind-error" class="hidden bg-red-50/80 text-red-500 px-4 py-3 rounded-xl mb-6 text-sm font-medium border border-red-100 text-left">
                     <i class="fas fa-exclamation-circle mr-1"></i> <span id="bind-error-text"></span>
                 </div>
                 
+                <div class="mb-5 text-left">
+                    <label class="block text-xs font-bold text-liquid-gray uppercase tracking-wider mb-2 ml-2">ROBLOX ID</label>
+                    <input type="text" id="input-roblox" placeholder="輸入您的 ID" class="w-full liquid-input rounded-2xl px-5 py-4 font-medium text-lg placeholder-gray-400" />
+                </div>
+
                 <div class="mb-8 text-left">
-                    <input type="text" id="input-roblox" placeholder="Roblox ID" class="w-full liquid-input rounded-2xl px-5 py-4 font-medium text-lg placeholder-gray-400" />
+                    <label class="block text-xs font-bold text-liquid-gray uppercase tracking-wider mb-2 ml-2">偏好皮膚箱</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button class="skin-box-option btn-press bg-blue-50 border-2 border-liquid-blue text-liquid-blue font-bold py-3 rounded-xl shadow-sm text-sm" data-box="皮膚箱1">
+                            <i class="fas fa-box-open mb-1 block text-lg"></i>箱 1
+                        </button>
+                        <button class="skin-box-option btn-press bg-white/60 border-2 border-transparent text-gray-500 font-bold py-3 rounded-xl hover:bg-white text-sm" data-box="皮膚箱2">
+                            <i class="fas fa-box mb-1 block text-lg"></i>箱 2
+                        </button>
+                        <button class="skin-box-option btn-press bg-white/60 border-2 border-transparent text-gray-500 font-bold py-3 rounded-xl hover:bg-white text-sm" data-box="皮膚箱3">
+                            <i class="fas fa-box mb-1 block text-lg"></i>箱 3
+                        </button>
+                    </div>
                 </div>
                 
                 <button id="btn-bind" class="w-full bg-liquid-text hover:bg-black text-white font-semibold py-4 rounded-2xl transition-colors btn-press text-lg shadow-lg">
-                    確認
+                    確認綁定
                 </button>
             </div>
         </div>
@@ -234,7 +250,6 @@
                                 <th class="py-3 px-2 font-medium">玩家</th>
                                 <th class="py-3 px-2 font-medium">金幣</th>
                                 <th class="py-3 px-2 font-medium">大廳狀態</th>
-                                <th class="py-3 px-2 font-medium">個人問答</th>
                                 <th class="py-3 px-2 font-medium text-right">操作</th>
                             </tr>
                         </thead>
@@ -260,7 +275,10 @@
                     </div>
                     <div>
                         <p class="text-[10px] text-liquid-gray font-bold uppercase tracking-widest mb-0.5">Player</p>
-                        <p id="client-roblox-id" class="text-lg font-bold tracking-tight text-gray-800">-</p>
+                        <div class="flex items-baseline gap-2">
+                            <p id="client-roblox-id" class="text-lg font-bold tracking-tight text-gray-800">-</p>
+                            <span id="client-skin-box" class="text-[10px] font-bold text-liquid-blue bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-100 hidden sm:inline-block"></span>
+                        </div>
                     </div>
                 </div>
                 <div class="text-right">
@@ -310,37 +328,6 @@
         </div>
     </div>
 
-    <!-- Host: Send Question Modal -->
-    <div id="host-q-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
-        <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[320px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
-            <h3 id="host-q-title" class="text-lg font-bold mb-4 flex justify-center items-center gap-2"><i class="fas fa-paper-plane text-purple-500"></i> 發送問題</h3>
-            <input type="text" id="host-q-input" value="要哪個？" class="w-full liquid-input rounded-xl px-4 py-3 mb-3 font-medium text-center shadow-inner" placeholder="問題內容" />
-            <input type="text" id="host-q-opt1" value="皮膚箱1" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-2 font-medium text-sm text-center" />
-            <input type="text" id="host-q-opt2" value="皮膚箱2" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-2 font-medium text-sm text-center" />
-            <input type="text" id="host-q-opt3" value="皮膚箱3" class="w-full liquid-input rounded-xl px-4 py-2.5 mb-6 font-medium text-sm text-center" />
-            <div class="flex flex-col gap-3">
-                <button id="btn-host-q-send" class="w-full py-3.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold transition-colors btn-press shadow-md shadow-purple-500/30">發送 (30秒)</button>
-                <button id="btn-host-q-cancel" class="w-full py-3.5 bg-white/60 hover:bg-white text-gray-700 rounded-xl font-semibold border border-white transition-colors btn-press">取消</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Client: Answer Question Modal -->
-    <div id="client-q-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-md transition-opacity"></div>
-        <div class="liquid-glass-heavy rounded-[2rem] p-8 max-w-[320px] w-full shadow-2xl relative z-10 animate-scale-in text-center border-t border-white">
-            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30 animate-liquid-morph">
-                <i class="fas fa-question text-3xl text-white"></i>
-            </div>
-            <h3 id="client-q-text" class="text-2xl font-black mb-2 tracking-tight text-gray-800">要哪個？</h3>
-            <p class="text-xs text-liquid-gray font-bold uppercase tracking-widest mb-6 bg-white/50 inline-block px-3 py-1 rounded-full">剩餘時間: <span id="client-q-time" class="text-red-500 text-sm">30s</span></p>
-            <div class="flex flex-col gap-3" id="client-q-opts">
-                <!-- Buttons injected here -->
-            </div>
-        </div>
-    </div>
-
     <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -369,7 +356,9 @@
         let currentUser = null, usersData = [], myData = null, gameState = null, betsData = [];
         let timeLeft = 0;
         let unsubUsers, unsubState, unsubBets;
-        let targetQuestionUid = null; // 用於紀錄主持人目前要發問的對象
+        
+        // 紀錄當前選取的皮膚箱，預設為皮膚箱1
+        let selectedSkinBox = '皮膚箱1';
 
         // --- Toast & Modals ---
         function showToast(message, type = 'info') {
@@ -454,6 +443,12 @@
             currentUser = user;
             if (!user) {
                 clearListeners();
+                
+                usersData = [];
+                myData = null;
+                gameState = null;
+                betsData = [];
+                
                 document.getElementById('navbar').classList.add('hidden');
                 showView('view-login');
             } else {
@@ -483,7 +478,6 @@
                 usersData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 myData = usersData.find(u => u.uid === currentUser.uid);
                 renderLogic();
-                updateClientQuestionModal();
             });
 
             unsubState = onSnapshot(collection(db, COL_STATE), (snap) => {
@@ -504,44 +498,13 @@
             if (unsubBets) unsubBets();
         }
 
-        // 全局 1 秒 Ticker 處理所有倒數
         setInterval(() => {
             const now = Date.now();
-            
-            // 1. 處理大廳全域押注倒數
             if (gameState && gameState.status === 'betting') {
                 const elapsed = Math.floor((now - gameState.startTime) / 1000);
                 timeLeft = Math.max(0, 10 - elapsed);
                 updateClientUIFromTimer();
                 if (currentUser && currentUser.email === ADMIN_EMAIL) renderHost();
-            }
-
-            // 2. 處理玩家個人的問答倒數
-            if (currentUser && currentUser.email !== ADMIN_EMAIL && myData?.personalQuestion && !myData.personalQuestion.answer) {
-                const qElapsed = Math.floor((now - myData.personalQuestion.startTime) / 1000);
-                const qLeft = Math.max(0, 30 - qElapsed);
-                const qTimerEl = document.getElementById('client-q-time');
-                if (qLeft > 0) {
-                    if (qTimerEl) qTimerEl.textContent = `${qLeft}s`;
-                } else {
-                    document.getElementById('client-q-modal').classList.add('hidden');
-                    updateDoc(doc(db, COL_USERS, currentUser.uid), { 'personalQuestion.answer': '超時' });
-                }
-            }
-
-            // 3. 處理主持端查看的問答倒數狀態
-            if (currentUser?.email === ADMIN_EMAIL) {
-                usersData.forEach(u => {
-                    if (u.personalQuestion && !u.personalQuestion.answer) {
-                        const qElapsed = Math.floor((now - u.personalQuestion.startTime) / 1000);
-                        const qLeft = Math.max(0, 30 - qElapsed);
-                        const el = document.getElementById(`q-status-${u.uid}`);
-                        if (el) {
-                            if (qLeft > 0) el.textContent = `答題中 (${qLeft}s)`;
-                            else el.textContent = `超時`;
-                        }
-                    }
-                });
             }
         }, 1000);
 
@@ -600,39 +563,25 @@
             const sortedUsers = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
             
             if (sortedUsers.length === 0) {
-                tbody.innerHTML = `<tr><td colSpan="5" class="py-8 text-center text-liquid-gray text-sm">無玩家</td></tr>`;
+                tbody.innerHTML = `<tr><td colSpan="4" class="py-8 text-center text-liquid-gray text-sm">無玩家</td></tr>`;
             } else {
                 sortedUsers.forEach((u, index) => {
                     const userBet = betsData.find(b => b.uid === u.uid);
-                    // 大廳狀態
                     let betHtml = `<span class="text-gray-400/80 text-xs font-medium border border-gray-300/50 px-2 py-1 rounded-md">閒置</span>`;
                     if (userBet) betHtml = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-white/60 text-liquid-blue border border-blue-100 shadow-sm">選 ${userBet.option}</span>`;
-                    
-                    // 個人問答狀態
-                    let pqHtml = `<button class="btn-send-pq text-purple-500 hover:bg-white/60 px-2 py-1 rounded-md text-xs font-bold border border-purple-200 transition-all shadow-sm flex items-center gap-1 btn-press" data-uid="${u.uid}"><i class="fas fa-paper-plane"></i>發問</button>`;
-                    if (u.personalQuestion) {
-                        if (u.personalQuestion.answer) {
-                            let ansColor = u.personalQuestion.answer === '超時' ? 'text-red-500 border-red-200 bg-red-50/50' : 'text-green-600 border-green-200 bg-green-50/50';
-                            pqHtml = `
-                                <div class="flex items-center gap-1.5">
-                                    <span class="px-2 py-1 rounded-md text-[10px] font-bold ${ansColor} border shadow-sm max-w-[80px] truncate" title="${u.personalQuestion.answer}">${u.personalQuestion.answer}</span>
-                                    <button class="btn-clear-pq text-gray-400 hover:text-gray-600 p-1 btn-press" data-uid="${u.uid}" title="清除重置"><i class="fas fa-times-circle"></i></button>
-                                </div>`;
-                        } else {
-                            pqHtml = `<span id="q-status-${u.uid}" class="text-[10px] font-bold text-orange-500 bg-orange-50/50 border border-orange-200 px-2 py-1 rounded-md shadow-sm">答題中...</span>`;
-                        }
-                    }
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-white/40 transition-colors";
                     tr.innerHTML = `
-                        <td class="py-3 px-2 font-bold text-sm text-gray-700 flex items-center gap-2">
-                            ${index === 0 ? '<i class="fas fa-crown text-yellow-500 text-xs drop-shadow-sm"></i>' : ''}
-                            ${u.robloxId}
+                        <td class="py-3 px-2 flex flex-col gap-0.5">
+                            <div class="font-bold text-sm text-gray-700 flex items-center gap-2">
+                                ${index === 0 ? '<i class="fas fa-crown text-yellow-500 text-xs drop-shadow-sm"></i>' : ''}
+                                ${u.robloxId}
+                            </div>
+                            <span class="text-[10px] text-liquid-gray font-medium"><i class="fas fa-box-open mr-1"></i>${u.skinBox || '未選擇'}</span>
                         </td>
                         <td class="py-3 px-2 text-sm font-black text-gray-800">${u.coins || 0}</td>
                         <td class="py-3 px-2">${betHtml}</td>
-                        <td class="py-3 px-2">${pqHtml}</td>
                         <td class="py-3 px-2 text-right">
                             <div class="flex items-center justify-end gap-1">
                                 <button class="btn-add-coins text-green-500 hover:text-green-600 hover:bg-white/50 p-1.5 rounded-lg transition-all" data-uid="${u.uid}" title="調整金幣"><i class="fas fa-plus-circle text-sm"></i></button>
@@ -643,7 +592,6 @@
                     tbody.appendChild(tr);
                 });
 
-                // 綁定各按鈕事件
                 document.querySelectorAll('.btn-reset-coins').forEach(btn => btn.addEventListener('click', (e) => {
                     const uid = e.currentTarget.getAttribute('data-uid');
                     const u = usersData.find(x => x.uid === uid);
@@ -665,45 +613,9 @@
                         } else if (val.trim() !== "") showToast("無效的數字", "error");
                     });
                 }));
-
-                document.querySelectorAll('.btn-send-pq').forEach(btn => btn.addEventListener('click', (e) => {
-                    targetQuestionUid = e.currentTarget.getAttribute('data-uid');
-                    document.getElementById('host-q-input').value = '要哪個？';
-                    document.getElementById('host-q-opt1').value = '皮膚箱1';
-                    document.getElementById('host-q-opt2').value = '皮膚箱2';
-                    document.getElementById('host-q-opt3').value = '皮膚箱3';
-                    openModalWithAnim('host-q-modal');
-                }));
-
-                document.querySelectorAll('.btn-clear-pq').forEach(btn => btn.addEventListener('click', async (e) => {
-                    const uid = e.currentTarget.getAttribute('data-uid');
-                    await updateDoc(doc(db, COL_USERS, uid), { personalQuestion: null });
-                }));
             }
         }
 
-        // 主持人發送個人問答
-        document.getElementById('btn-host-q-cancel').addEventListener('click', () => {
-            document.getElementById('host-q-modal').classList.add('hidden');
-        });
-        document.getElementById('btn-host-q-send').addEventListener('click', async () => {
-            if (!targetQuestionUid) return;
-            const q = document.getElementById('host-q-input').value.trim();
-            const o1 = document.getElementById('host-q-opt1').value.trim();
-            const o2 = document.getElementById('host-q-opt2').value.trim();
-            const o3 = document.getElementById('host-q-opt3').value.trim();
-            if(!q || !o1 || !o2 || !o3) return showToast("所有欄位必填", "warning");
-
-            try {
-                await updateDoc(doc(db, COL_USERS, targetQuestionUid), {
-                    personalQuestion: { q: q, opts: [o1, o2, o3], startTime: Date.now(), answer: null }
-                });
-                document.getElementById('host-q-modal').classList.add('hidden');
-                showToast("提問已發送", "success");
-            } catch(e) { showToast("錯誤", "error"); }
-        });
-
-        // 大廳發起押注
         document.getElementById('btn-start-bet').addEventListener('click', async () => {
             const title = document.getElementById('host-title').value;
             const optA = document.getElementById('host-optA').value;
@@ -744,7 +656,31 @@
         document.getElementById('btn-resolve-a').addEventListener('click', () => resolveBet('A'));
         document.getElementById('btn-resolve-b').addEventListener('click', () => resolveBet('B'));
 
-        // --- 用戶綁定介面 ---
+        // --- 用戶綁定介面 (包含皮膚箱選擇) ---
+        
+        // 皮膚箱按鈕點擊邏輯
+        const skinBoxBtns = document.querySelectorAll('.skin-box-option');
+        skinBoxBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // 重置所有按鈕樣式
+                skinBoxBtns.forEach(b => {
+                    b.classList.remove('bg-blue-50', 'border-liquid-blue', 'text-liquid-blue', 'shadow-sm');
+                    b.classList.add('bg-white/60', 'border-transparent', 'text-gray-500');
+                    b.querySelector('i').classList.remove('fa-box-open');
+                    b.querySelector('i').classList.add('fa-box');
+                });
+                
+                // 套用選取樣式
+                const currentBtn = e.currentTarget;
+                currentBtn.classList.add('bg-blue-50', 'border-liquid-blue', 'text-liquid-blue', 'shadow-sm');
+                currentBtn.classList.remove('bg-white/60', 'border-transparent', 'text-gray-500');
+                currentBtn.querySelector('i').classList.remove('fa-box');
+                currentBtn.querySelector('i').classList.add('fa-box-open');
+                
+                selectedSkinBox = currentBtn.getAttribute('data-box');
+            });
+        });
+
         document.getElementById('btn-bind').addEventListener('click', async () => {
             const input = document.getElementById('input-roblox').value.trim();
             const errDiv = document.getElementById('bind-error');
@@ -755,9 +691,16 @@
                 errText.textContent = "ID 已被使用"; return errDiv.classList.remove('hidden');
             }
             try {
-                await setDoc(doc(db, COL_USERS, currentUser.uid), { uid: currentUser.uid, email: currentUser.email, robloxId: input, coins: 0 });
+                // 將 selectedSkinBox 一併寫入資料庫
+                await setDoc(doc(db, COL_USERS, currentUser.uid), { 
+                    uid: currentUser.uid, 
+                    email: currentUser.email, 
+                    robloxId: input, 
+                    coins: 0,
+                    skinBox: selectedSkinBox 
+                });
                 showToast("綁定成功", "success");
-            } catch (err) { errText.textContent = "網路錯誤"; errDiv.classList.remove('hidden'); }
+            } catch (err) { errText.textContent = "網路錯誤 (請確認 Firestore Rules)"; errDiv.classList.remove('hidden'); }
         });
 
         // --- 客戶端更新邏輯 ---
@@ -777,7 +720,6 @@
             }
             
             if (timeLeft <= 0) {
-                // 時間到不變淡，單純加上不可點擊狀態
                 document.querySelectorAll('.btn-bet').forEach(b => {
                     b.disabled = true; 
                     b.classList.add('cursor-not-allowed');
@@ -786,48 +728,19 @@
             }
         }
 
-        // 客戶端接收個人問答
-        function updateClientQuestionModal() {
-            if (currentUser?.email === ADMIN_EMAIL || !myData) return;
-            const modal = document.getElementById('client-q-modal');
-            
-            if (!myData.personalQuestion) {
-                modal.classList.add('hidden');
-                return;
-            }
-            
-            const pq = myData.personalQuestion;
-            const elapsed = Math.floor((Date.now() - pq.startTime) / 1000);
-            
-            if (!pq.answer && elapsed < 30) {
-                if (modal.classList.contains('hidden')) {
-                    document.getElementById('client-q-text').textContent = pq.q;
-                    const optsContainer = document.getElementById('client-q-opts');
-                    optsContainer.innerHTML = '';
-                    pq.opts.forEach(opt => {
-                        const btn = document.createElement('button');
-                        btn.className = "w-full py-4 bg-white/80 hover:bg-white text-gray-800 rounded-2xl font-bold border border-gray-200 transition-all btn-press shadow-sm text-lg";
-                        btn.textContent = opt;
-                        btn.onclick = async () => {
-                            modal.classList.add('hidden');
-                            await updateDoc(doc(db, COL_USERS, currentUser.uid), { 'personalQuestion.answer': opt });
-                            showToast(`已選: ${opt}`, 'success');
-                        };
-                        optsContainer.appendChild(btn);
-                    });
-                    openModalWithAnim('client-q-modal');
-                }
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        // 用戶主競技場渲染
         function renderClient() {
             document.getElementById('client-roblox-id').textContent = myData.robloxId;
             document.getElementById('client-coins').textContent = myData.coins || 0;
             
-            // 計算目前排名
+            // 顯示選擇的皮膚箱
+            const skinBoxEl = document.getElementById('client-skin-box');
+            if (myData.skinBox) {
+                skinBoxEl.textContent = myData.skinBox;
+                skinBoxEl.classList.remove('hidden');
+            } else {
+                skinBoxEl.classList.add('hidden');
+            }
+            
             const sortedUsersDesc = [...usersData].sort((a, b) => (b.coins || 0) - (a.coins || 0));
             const myRankIndex = sortedUsersDesc.findIndex(u => u.uid === currentUser.uid);
             document.getElementById('client-rank-badge').textContent = `#${myRankIndex + 1}`;
@@ -863,7 +776,6 @@
                             </div>
                         </div>`;
 
-                // 不論是否已押注，都顯示兩個按鈕，不再取代畫面
                 const btnA_selected = myBet && myBet.option === 'A';
                 const btnB_selected = myBet && myBet.option === 'B';
                 
@@ -938,4 +850,5 @@
     </script>
 </body>
 </html>
+
 
