@@ -60,7 +60,6 @@
         
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* 核心：液態毛玻璃效果 */
         .liquid-glass {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
             backdrop-filter: saturate(180%) blur(24px);
@@ -81,7 +80,6 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
 
-        /* 簡約輸入框 */
         .liquid-input {
             background: rgba(255, 255, 255, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.8);
@@ -95,25 +93,21 @@
             outline: none;
         }
 
-        /* 按鈕縮放回饋 */
         .btn-press { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; }
         .btn-press:active:not(:disabled) { transform: scale(0.96); }
 
-        /* Toast 動畫 */
         @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .toast-animate { animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
 <body class="min-h-screen relative font-sans">
 
-    <!-- 動態液態背景 -->
     <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-gradient-to-tr from-pink-300/50 to-purple-300/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 12s;"></div>
         <div class="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-gradient-to-bl from-blue-300/50 to-cyan-200/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 15s; animation-delay: -5s;"></div>
         <div class="absolute bottom-[-10%] left-[20%] w-[60%] h-[50%] bg-gradient-to-t from-yellow-200/50 to-pink-200/50 mix-blend-multiply filter blur-[80px] animate-liquid-morph" style="animation-duration: 18s; animation-delay: -2s;"></div>
     </div>
 
-    <!-- 浮島式 Navbar -->
     <header id="navbar" class="hidden fixed top-4 right-4 sm:top-6 sm:right-6 z-40 liquid-glass px-4 py-2 sm:px-5 sm:py-2.5 rounded-full flex items-center gap-4 animate-fade-in transition-all">
         <div class="flex items-center gap-2">
             <i class="fas fa-droplet text-liquid-blue text-lg"></i>
@@ -130,7 +124,6 @@
 
     <main class="max-w-5xl mx-auto p-5 sm:p-8 relative z-10 pt-24 pb-20">
         
-        <!-- 1. Loading View -->
         <div id="view-loading" class="flex flex-col items-center justify-center min-h-[70vh] animate-fade-in">
             <div class="w-12 h-12 relative mb-6">
                 <div class="absolute inset-0 border-[3px] border-gray-200 rounded-full"></div>
@@ -139,7 +132,6 @@
             <p id="loading-text" class="text-sm font-medium text-liquid-gray tracking-wide">載入中...</p>
         </div>
 
-        <!-- 2. Login View -->
         <div id="view-login" class="hidden flex flex-col items-center justify-center min-h-[70vh]">
             <div class="liquid-glass-heavy p-10 sm:p-14 rounded-[2rem] max-w-md w-full text-center animate-scale-in">
                 <div class="mb-8">
@@ -156,7 +148,6 @@
             </div>
         </div>
 
-        <!-- 3. Bind Roblox View -->
         <div id="view-bind" class="hidden max-w-md mx-auto mt-12 animate-scale-in">
             <div class="liquid-glass-heavy p-8 sm:p-10 rounded-[2rem] text-center">
                 <div class="w-16 h-16 bg-white/50 border border-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
@@ -194,14 +185,12 @@
             </div>
         </div>
 
-        <!-- 4. Host Dashboard View -->
         <div id="view-host" class="hidden space-y-8 animate-fade-in">
             <div class="text-left mb-6">
                 <h2 class="text-3xl font-bold tracking-tight text-gray-800">控制中心</h2>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- 發起對決卡片 -->
                 <div class="liquid-glass rounded-[2rem] p-8">
                     <h3 class="text-lg font-semibold mb-6 flex items-center gap-2"><i class="fas fa-bolt text-yellow-500"></i> 發起對決</h3>
                     <div class="space-y-5">
@@ -218,12 +207,10 @@
                     </div>
                 </div>
 
-                <!-- 當前狀態卡片 -->
                 <div class="liquid-glass rounded-[2rem] p-8 flex flex-col justify-between">
                     <div>
                         <h3 class="text-lg font-semibold mb-6 flex items-center gap-2"><i class="fas fa-satellite-dish text-purple-500"></i> 狀態</h3>
                         <div id="host-state-content" class="min-h-[120px]">
-                            <!-- Injected by JS -->
                         </div>
                     </div>
                     <div id="host-resolve-panel" class="hidden mt-6 pt-6 border-t border-white/40">
@@ -240,7 +227,6 @@
                 </div>
             </div>
 
-            <!-- 玩家列表 -->
             <div class="liquid-glass rounded-[2rem] p-8 overflow-hidden">
                 <h3 class="text-lg font-semibold mb-6 flex items-center gap-2"><i class="fas fa-users text-green-500"></i> 玩家</h3>
                 <div class="overflow-x-auto">
@@ -254,21 +240,17 @@
                             </tr>
                         </thead>
                         <tbody id="host-table-body" class="divide-y divide-gray-300/20">
-                            <!-- Injected by JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- 5. Client Dashboard View -->
         <div id="view-client" class="hidden max-w-2xl mx-auto space-y-6 animate-fade-in">
-            <!-- 頂部資訊卡 -->
             <div class="liquid-glass-heavy rounded-3xl p-6 flex items-center justify-between shadow-lg shadow-gray-200/50">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-white/60 border border-white rounded-full flex items-center justify-center text-xl text-gray-700 shadow-sm relative">
                         <i class="fas fa-ghost"></i>
-                        <!-- 排名 Badge -->
                         <div id="client-rank-badge" class="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm border border-white whitespace-nowrap">
                             #1
                         </div>
@@ -290,19 +272,13 @@
                 </div>
             </div>
 
-            <!-- 押注主區域 -->
             <div id="client-arena-content" class="w-full">
-                <!-- Injected by JS -->
             </div>
         </div>
     </main>
 
-    <!-- Global Toast Container -->
     <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[70] flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4"></div>
 
-    <!-- Modals (with scale-in animations) -->
-    
-    <!-- Confirm Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
         <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[300px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
@@ -315,7 +291,6 @@
         </div>
     </div>
 
-    <!-- Input Modal -->
     <div id="input-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity"></div>
         <div class="liquid-glass-heavy rounded-3xl p-6 max-w-[300px] w-full shadow-2xl relative z-10 animate-scale-in text-center">
@@ -328,7 +303,6 @@
         </div>
     </div>
 
-    <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -348,8 +322,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 管理員名單改成陣列
-        const ADMIN_EMAILS = ['pixel9profold20240813@gmail.com', 'tw2019192@gmail.com'];
+        // 管理員名單陣列
+        const ADMIN_EMAILS = [
+            'pixel9profold20240813@gmail.com', 
+            'tw2019192@gmail.com', 
+            'waipig.lim@gmail.com'
+        ];
+        
         const COL_USERS = 'betting_users';
         const COL_STATE = 'betting_state';
         const COL_BETS = 'betting_bets';
@@ -357,11 +336,8 @@
         let currentUser = null, usersData = [], myData = null, gameState = null, betsData = [];
         let timeLeft = 0;
         let unsubUsers, unsubState, unsubBets;
-        
-        // 紀錄當前選取的皮膚箱，預設為皮膚箱1
         let selectedSkinBox = '皮膚箱1';
 
-        // --- Toast & Modals ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -406,7 +382,6 @@
             confirmCallback = null;
         });
 
-        // Input Modal Logic
         let inputCallback = null;
         function showInputModal(title, placeholder, callback) {
             document.getElementById('input-modal-title').textContent = title;
@@ -436,19 +411,14 @@
             if (viewId) openModalWithAnim(viewId);
         }
 
-        // --- Auth 邏輯 ---
-        showView('view-loading'); 
-
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (!user) {
                 clearListeners();
-                
                 usersData = [];
                 myData = null;
                 gameState = null;
                 betsData = [];
-                
                 document.getElementById('navbar').classList.add('hidden');
                 showView('view-login');
             } else {
@@ -472,7 +442,6 @@
 
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
-        // --- 資料庫與全局計時器 ---
         function setupRealtimeListeners() {
             unsubUsers = onSnapshot(collection(db, COL_USERS), (snap) => {
                 usersData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -526,7 +495,6 @@
             }
         }
 
-        // --- 主持端介面 ---
         function renderHost() {
             const stateDiv = document.getElementById('host-state-content');
             const resolvePanel = document.getElementById('host-resolve-panel');
@@ -659,7 +627,6 @@
         document.getElementById('btn-resolve-a').addEventListener('click', () => resolveBet('A'));
         document.getElementById('btn-resolve-b').addEventListener('click', () => resolveBet('B'));
 
-        // --- 用戶綁定介面 (包含皮膚箱選擇) ---
         const skinBoxBtns = document.querySelectorAll('.skin-box-option');
         skinBoxBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -700,7 +667,6 @@
             } catch (err) { errText.textContent = "網路錯誤或無權限"; errDiv.classList.remove('hidden'); }
         });
 
-        // --- 客戶端更新邏輯 ---
         function updateClientUIFromTimer() {
             if ((currentUser && ADMIN_EMAILS.includes(currentUser.email)) || !myData) return;
             const timeSpan = document.getElementById('client-time-left');
@@ -774,22 +740,16 @@
 
                 const btnA_selected = myBet && myBet.option === 'A';
                 const btnB_selected = myBet && myBet.option === 'B';
-                
                 const disableInteraction = (timeLeft <= 0 || myBet);
-                const classBase = "rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden";
-                const classInteract = disableInteraction ? "cursor-not-allowed" : "hover:-translate-y-1 shadow-md hover:shadow-lg btn-press";
-                
-                const styleA = btnA_selected ? "ring-4 ring-green-400 bg-white shadow-lg scale-105" : "bg-white/80 border border-white";
-                const styleB = btnB_selected ? "ring-4 ring-green-400 bg-white shadow-lg scale-105" : "bg-white/80 border border-white";
 
                 content += `
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button class="btn-bet ${classBase} ${styleA} ${classInteract}" data-opt="A" ${disableInteraction ? 'disabled' : ''}>
+                        <button class="btn-bet rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden ${btnA_selected ? 'ring-4 ring-green-400 bg-white shadow-lg scale-105' : 'bg-white/80 border border-white'} ${disableInteraction ? 'cursor-not-allowed' : 'hover:-translate-y-1 shadow-md hover:shadow-lg btn-press'}" data-opt="A" ${disableInteraction ? 'disabled' : ''}>
                             <span class="w-10 h-10 rounded-full ${btnA_selected ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-500'} flex items-center justify-center text-sm font-black mb-1 transition-colors">A</span>
                             <span class="text-2xl font-black text-gray-800">${gameState.optionA}</span>
                             ${btnA_selected ? '<div class="absolute top-3 right-3 text-green-500 text-lg"><i class="fas fa-check-circle"></i></div>' : ''}
                         </button>
-                        <button class="btn-bet ${classBase} ${styleB} ${classInteract}" data-opt="B" ${disableInteraction ? 'disabled' : ''}>
+                        <button class="btn-bet rounded-3xl p-6 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden ${btnB_selected ? 'ring-4 ring-green-400 bg-white shadow-lg scale-105' : 'bg-white/80 border border-white'} ${disableInteraction ? 'cursor-not-allowed' : 'hover:-translate-y-1 shadow-md hover:shadow-lg btn-press'}" data-opt="B" ${disableInteraction ? 'disabled' : ''}>
                             <span class="w-10 h-10 rounded-full ${btnB_selected ? 'bg-green-100 text-green-600' : 'bg-purple-50 text-purple-500'} flex items-center justify-center text-sm font-black mb-1 transition-colors">B</span>
                             <span class="text-2xl font-black text-gray-800">${gameState.optionB}</span>
                             ${btnB_selected ? '<div class="absolute top-3 right-3 text-green-500 text-lg"><i class="fas fa-check-circle"></i></div>' : ''}
@@ -812,7 +772,7 @@
                                 });
                                 showToast("押注成功", "success");
                             } catch (err) { 
-                                showToast("寫入失敗，請檢查網路", "error"); 
+                                showToast("寫入失敗", "error"); 
                             }
                         });
                     });
@@ -853,5 +813,4 @@
     </script>
 </body>
 </html>
-
 
